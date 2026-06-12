@@ -62,11 +62,17 @@ EnvironmentFile=/opt/assistente/backend/.env
 WantedBy=multi-user.target
 ```
 
-## Estado atual (Etapa 2)
+## Estado atual (Etapa 3)
 
-- Connectors **somente leitura**: Omie (clientes, oportunidades, tarefas) e
-  Microsoft Graph (mail, calendário).
-- `monitor_agent` com varredura de atrasos → tabela `alerts`.
-- Portão de aprovação (`src/approvals.py`) pronto: toda escrita externa das
-  próximas etapas nasce `pending`; deleção nunca auto-executa.
+- Connector Omie **somente leitura** (clientes, oportunidades, tarefas).
+- Connector Graph: leitura de mail/calendário + rascunhos (Drafts); envio e
+  exclusão só pelos executores do portão (`src/executors.py`).
+- `monitor_agent`: varredura de atrasos → tabela `alerts` (cron diário 6h).
+- `email_agent`: triagem da inbox → `emails_triaged`, rascunho de resposta/
+  encaminhamento no Outlook (cron diário 7h). O agente NÃO tem ferramenta de
+  envio nem exclusão direta — `solicitar_envio`/`solicitar_exclusao` só
+  enfileiram em `approvals`; exclusão aprovada move para Itens Excluídos
+  (reversível), nunca hard delete.
+- Endpoints: `/emails/triaged`, `/emails/{id}/draft`,
+  `/agents/email/triage`, além de alerts/approvals/runs da Etapa 2.
 - Toda chamada de ferramenta de agente é auditada em `audit_log`.

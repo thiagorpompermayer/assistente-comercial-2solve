@@ -21,6 +21,16 @@ def _run_monitor_scan() -> None:
     logger.info("scheduler: varredura concluída (run %s, %s)", result.run_id, result.status)
 
 
+def _run_email_triage() -> None:
+    from src.agents.email_agent import EmailAgent, build_triage_demand
+    from src.db.session import get_session_factory
+
+    logger.info("scheduler: iniciando triagem da inbox pelo email_agent")
+    agent = EmailAgent(get_session_factory())
+    result = agent.run_demand(build_triage_demand(), trigger="scheduler")
+    logger.info("scheduler: triagem concluída (run %s, %s)", result.run_id, result.status)
+
+
 def create_scheduler() -> BackgroundScheduler:
     settings = get_settings()
     scheduler = BackgroundScheduler(timezone="America/Sao_Paulo")
@@ -29,6 +39,13 @@ def create_scheduler() -> BackgroundScheduler:
         trigger="cron",
         hour=settings.monitor_cron_hour,
         id="monitor_overdue_scan",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        _run_email_triage,
+        trigger="cron",
+        hour=settings.email_triage_cron_hour,
+        id="email_inbox_triage",
         replace_existing=True,
     )
     return scheduler

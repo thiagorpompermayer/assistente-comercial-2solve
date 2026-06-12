@@ -30,6 +30,7 @@ class Settings(BaseSettings):
 
     scheduler_enabled: bool = False
     monitor_cron_hour: int = 6
+    email_triage_cron_hour: int = 7
 
 
 @lru_cache

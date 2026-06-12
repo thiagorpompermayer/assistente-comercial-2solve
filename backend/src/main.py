@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from src import executors  # noqa: F401 — importa para registrar executores do portão
 from src.api.routes import router as v1_router
 from src.config import get_settings
 from src.db.session import init_db

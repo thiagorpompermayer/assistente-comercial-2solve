@@ -49,6 +49,28 @@ class DecisionIn(BaseModel):
     reason: str | None = None
 
 
+class EmailTriagedOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    run_id: int | None
+    graph_message_id: str
+    sender: str | None
+    subject: str | None
+    received_at: str | None
+    classification: str
+    summary: str
+    draft_id: str | None
+    created_at: datetime
+
+
+class DraftOut(BaseModel):
+    draft_id: str
+    subject: str | None
+    body: str
+    to: list[str]
+
+
 class RunAccepted(BaseModel):
     run_id: int
     status: str

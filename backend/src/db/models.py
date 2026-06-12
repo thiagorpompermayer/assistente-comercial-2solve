@@ -101,6 +101,25 @@ class Alert(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class EmailTriaged(Base):
+    """Saída do email_agent: um registro por email triado da caixa comercial."""
+
+    __tablename__ = "emails_triaged"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    run_id: Mapped[int | None] = mapped_column(ForeignKey("agent_runs.id"), index=True)
+    graph_message_id: Mapped[str] = mapped_column(String(255), index=True)
+    sender: Mapped[str | None] = mapped_column(String(255), default=None)
+    subject: Mapped[str | None] = mapped_column(String(500), default=None)
+    received_at: Mapped[str | None] = mapped_column(String(50), default=None)  # ISO do Graph
+    classification: Mapped[str] = mapped_column(
+        String(30), index=True
+    )  # lead|cliente_ativo|fornecedor|interno|irrelevante
+    summary: Mapped[str] = mapped_column(Text, default="")
+    draft_id: Mapped[str | None] = mapped_column(String(255), default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class ActionFlag(Base):
     """Liberação gradual de escrita externa, ação por ação (regra dura 2).
 

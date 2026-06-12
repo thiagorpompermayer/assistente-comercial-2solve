@@ -9,6 +9,7 @@ from __future__ import annotations
 from sqlalchemy.orm import Session, sessionmaker
 
 from src.agents.base import AgentResult, BaseAgent
+from src.agents.email_agent import EmailAgent
 from src.agents.monitor_agent import MonitorAgent
 from src.db.session import get_session_factory
 
@@ -19,6 +20,7 @@ class UnknownAgentError(LookupError):
 
 AGENT_REGISTRY: dict[str, type[BaseAgent]] = {
     "monitor": MonitorAgent,
+    "email": EmailAgent,
 }
 
 

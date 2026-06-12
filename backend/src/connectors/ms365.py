@@ -1,8 +1,13 @@
-"""Microsoft Graph — SOMENTE LEITURA nesta fase (Etapa 2): mail e calendário.
+"""Microsoft Graph: mail (leitura, rascunhos, envio, exclusão) e calendário.
 
 Autenticação app-only (client credentials) via MSAL, escopo .default.
-Menor privilégio: Mail.Read e Calendars.Read, restritos à caixa comercial
-por Application Access Policy (ver docs/02-arquitetura.md §5).
+Menor privilégio: Mail.ReadWrite + Mail.Send + Calendars.Read, restritos à
+caixa comercial por Application Access Policy (docs/02-arquitetura.md §5).
+
+ATENÇÃO (regras duras 1 e 2): `send_draft` e `move_to_deleted` só podem ser
+chamados pelos executores do portão de aprovação (src/executors.py) — nunca
+diretamente por ferramenta de agente. Rascunhos podem ser criados livremente
+(ficam na pasta Drafts, nada chega ao cliente).
 
 `token_provider` é injetável para testes (evita MSAL real).
 """
@@ -59,10 +64,18 @@ class GraphClient:
             )
         return result["access_token"]
 
-    def _get(self, path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
-        response = self._http.get(
+    def _request(
+        self,
+        method: str,
+        path: str,
+        params: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        response = self._http.request(
+            method,
             f"{GRAPH_BASE}{path}",
             params=params,
+            json=json,
             headers={"Authorization": f"Bearer {self._token_provider()}"},
         )
         if response.status_code >= 400:
@@ -71,7 +84,14 @@ class GraphClient:
             except ValueError:
                 detail = response.text
             raise GraphError(f"Graph HTTP {response.status_code}: {detail}")
+        if response.status_code == 204 or not response.content:
+            return None
         return response.json()
+
+    def _get(self, path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+        data = self._request("GET", path, params=params)
+        assert data is not None
+        return data
 
     # ----- leituras -----
 
@@ -93,3 +113,50 @@ class GraphClient:
             },
         )
         return data.get("value", [])
+
+    def get_message(self, message_id: str) -> dict[str, Any]:
+        return self._get(
+            f"/users/{self._mailbox}/messages/{message_id}",
+            params={"$select": f"{MESSAGE_FIELDS},body,toRecipients,ccRecipients"},
+        )
+
+    # ----- rascunhos (livres — nada chega ao cliente) -----
+
+    def create_reply_draft(
+        self, message_id: str, comment: str, reply_all: bool = False
+    ) -> dict[str, Any]:
+        action = "createReplyAll" if reply_all else "createReply"
+        draft = self._request(
+            "POST",
+            f"/users/{self._mailbox}/messages/{message_id}/{action}",
+            json={"comment": comment},
+        )
+        assert draft is not None
+        return draft
+
+    def create_forward_draft(
+        self, message_id: str, to: list[str], comment: str = ""
+    ) -> dict[str, Any]:
+        draft = self._request(
+            "POST",
+            f"/users/{self._mailbox}/messages/{message_id}/createForward",
+            json={
+                "comment": comment,
+                "toRecipients": [{"emailAddress": {"address": addr}} for addr in to],
+            },
+        )
+        assert draft is not None
+        return draft
+
+    # ----- escritas externas — SÓ via executores do portão (src/executors.py) -----
+
+    def send_draft(self, draft_id: str) -> None:
+        self._request("POST", f"/users/{self._mailbox}/messages/{draft_id}/send")
+
+    def move_to_deleted(self, message_id: str) -> dict[str, Any] | None:
+        """Exclusão reversível: move para a pasta Itens Excluídos (nunca hard delete)."""
+        return self._request(
+            "POST",
+            f"/users/{self._mailbox}/messages/{message_id}/move",
+            json={"destinationId": "deleteditems"},
+        )

@@ -171,7 +171,15 @@ registrando decisões tomadas.
   adiado para quando o schema estabilizar (create_all por ora — desvio
   consciente da arquitetura, revisar antes da migração a Postgres);
   payload de aprovação congelado byte a byte e decisão única (409 na 2ª).
-- [ ] 3. Email
+- [x] 3. Email — (2026-06-12) `email_agent` (triagem → `emails_triaged`,
+  rascunhos de resposta/encaminhamento direto na pasta Drafts), envio e
+  exclusão SEM ferramenta direta: `solicitar_envio`/`solicitar_exclusao`
+  enfileiram em `approvals`; executores em `src/executors.py` (envio de
+  draft; exclusão = mover para Itens Excluídos, reversível). Endpoints
+  `/emails/triaged`, `/emails/{id}/draft`, `/agents/email/triage`; triagem
+  agendada diária (7h). 39 testes. Decisões: rascunho é escrita livre
+  (nada sai da caixa) porém auditada; preview da aprovação carrega
+  destinatário/assunto/resumo para o aprovador decidir sem abrir o Outlook.
 - [ ] 4. Propostas/slides
 - [ ] 5. Escrita no CRM
 - [ ] 6. Engenharia

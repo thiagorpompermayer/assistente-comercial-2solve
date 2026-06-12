@@ -8,8 +8,16 @@ from sqlalchemy.orm import Session
 
 from src import approvals as approvals_gate
 from src.api import schemas
-from src.api.deps import MonitorRunner, get_db, get_monitor_runner
-from src.db.models import AgentRun, Alert, Approval
+from src.api.deps import (
+    EmailRunner,
+    MonitorRunner,
+    get_db,
+    get_email_runner,
+    get_graph_client,
+    get_monitor_runner,
+)
+from src.connectors.ms365 import GraphClient, GraphError
+from src.db.models import AgentRun, Alert, Approval, EmailTriaged
 
 router = APIRouter()
 
@@ -103,6 +111,67 @@ def reject_action(
         raise HTTPException(404, detail=str(exc)) from exc
     except approvals_gate.ApprovalStateError as exc:
         raise HTTPException(409, detail=str(exc)) from exc
+
+
+# ----- emails (Etapa 3) -----
+
+
+@router.get("/emails/triaged", response_model=list[schemas.EmailTriagedOut])
+def list_triaged_emails(
+    classification: str | None = None,
+    limit: int = 100,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+) -> list[EmailTriaged]:
+    query = (
+        select(EmailTriaged)
+        .order_by(EmailTriaged.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    if classification:
+        query = query.where(EmailTriaged.classification == classification)
+    return list(db.scalars(query))
+
+
+@router.get("/emails/{triage_id}/draft", response_model=schemas.DraftOut)
+def get_email_draft(
+    triage_id: int,
+    db: Session = Depends(get_db),
+    graph: GraphClient = Depends(get_graph_client),
+) -> schemas.DraftOut:
+    row = db.get(EmailTriaged, triage_id)
+    if row is None:
+        raise HTTPException(404, detail=f"email triado {triage_id} não existe")
+    if not row.draft_id:
+        raise HTTPException(404, detail=f"email triado {triage_id} não tem rascunho")
+    try:
+        draft = graph.get_message(row.draft_id)
+    except GraphError as exc:
+        raise HTTPException(502, detail=str(exc)) from exc
+    return schemas.DraftOut(
+        draft_id=row.draft_id,
+        subject=draft.get("subject"),
+        body=(draft.get("body") or {}).get("content", ""),
+        to=[
+            r["emailAddress"]["address"]
+            for r in draft.get("toRecipients", [])
+            if r.get("emailAddress", {}).get("address")
+        ],
+    )
+
+
+@router.post("/agents/email/triage", response_model=schemas.RunAccepted, status_code=202)
+def run_email_triage(
+    background: BackgroundTasks,
+    db: Session = Depends(get_db),
+    runner: EmailRunner = Depends(get_email_runner),
+) -> schemas.RunAccepted:
+    run = AgentRun(agent="email", trigger="api", status="queued")
+    db.add(run)
+    db.commit()
+    background.add_task(runner, run.id)
+    return schemas.RunAccepted(run_id=run.id, status="queued")
 
 
 # ----- agentes -----

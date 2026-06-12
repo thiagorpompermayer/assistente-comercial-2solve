@@ -9,6 +9,9 @@ from src.db.session import get_db  # noqa: F401 — reexportado como dependency 
 MonitorRunner = Callable[[int], None]
 """Recebe o run_id pré-criado (status queued) e executa a varredura do monitor."""
 
+EmailRunner = Callable[[int], None]
+"""Recebe o run_id pré-criado (status queued) e executa a triagem da inbox."""
+
 
 def get_monitor_runner() -> MonitorRunner:
     def _run(run_id: int) -> None:
@@ -19,3 +22,20 @@ def get_monitor_runner() -> MonitorRunner:
         agent.run_demand(build_overdue_demand(), trigger="api", run_id=run_id)
 
     return _run
+
+
+def get_email_runner() -> EmailRunner:
+    def _run(run_id: int) -> None:
+        from src.agents.email_agent import EmailAgent, build_triage_demand
+        from src.db.session import get_session_factory
+
+        agent = EmailAgent(get_session_factory())
+        agent.run_demand(build_triage_demand(), trigger="api", run_id=run_id)
+
+    return _run
+
+
+def get_graph_client():
+    from src.connectors.ms365 import GraphClient
+
+    return GraphClient()
