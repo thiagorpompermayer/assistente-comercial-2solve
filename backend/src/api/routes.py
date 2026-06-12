@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi.responses import FileResponse
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
@@ -11,13 +14,15 @@ from src.api import schemas
 from src.api.deps import (
     EmailRunner,
     MonitorRunner,
+    ProposalRunner,
     get_db,
     get_email_runner,
     get_graph_client,
     get_monitor_runner,
+    get_proposal_runner,
 )
 from src.connectors.ms365 import GraphClient, GraphError
-from src.db.models import AgentRun, Alert, Approval, EmailTriaged
+from src.db.models import AgentRun, Alert, Approval, EmailTriaged, Proposal
 
 router = APIRouter()
 
@@ -172,6 +177,72 @@ def run_email_triage(
     db.commit()
     background.add_task(runner, run.id)
     return schemas.RunAccepted(run_id=run.id, status="queued")
+
+
+# ----- propostas (Etapa 4) -----
+
+
+@router.post("/proposals", response_model=schemas.ProposalAccepted, status_code=202)
+def create_proposal(
+    body: schemas.ProposalIn,
+    background: BackgroundTasks,
+    db: Session = Depends(get_db),
+    runner: ProposalRunner = Depends(get_proposal_runner),
+) -> schemas.ProposalAccepted:
+    proposal = Proposal(
+        omie_client_id=body.omie_client_id,
+        title=body.title,
+        input_json=body.model_dump(),
+        status="draft",
+    )
+    run = AgentRun(agent="proposal", trigger="api", status="queued")
+    db.add_all([proposal, run])
+    db.commit()
+    proposal.run_id = run.id
+    db.commit()
+    background.add_task(runner, proposal.id, run.id)
+    return schemas.ProposalAccepted(
+        proposal_id=proposal.id, run_id=run.id, status="queued"
+    )
+
+
+@router.get("/proposals", response_model=list[schemas.ProposalOut])
+def list_proposals(
+    status: str | None = None,
+    limit: int = 100,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+) -> list[Proposal]:
+    query = (
+        select(Proposal).order_by(Proposal.created_at.desc()).limit(limit).offset(offset)
+    )
+    if status:
+        query = query.where(Proposal.status == status)
+    return list(db.scalars(query))
+
+
+@router.get("/proposals/{proposal_id}", response_model=schemas.ProposalOut)
+def get_proposal(proposal_id: int, db: Session = Depends(get_db)) -> Proposal:
+    proposal = db.get(Proposal, proposal_id)
+    if proposal is None:
+        raise HTTPException(404, detail=f"proposta {proposal_id} não existe")
+    return proposal
+
+
+@router.get("/proposals/{proposal_id}/download")
+def download_proposal(proposal_id: int, db: Session = Depends(get_db)) -> FileResponse:
+    proposal = db.get(Proposal, proposal_id)
+    if proposal is None:
+        raise HTTPException(404, detail=f"proposta {proposal_id} não existe")
+    if not proposal.pptx_path or not Path(proposal.pptx_path).exists():
+        raise HTTPException(404, detail=f"proposta {proposal_id} ainda não tem PPTX gerado")
+    path = Path(proposal.pptx_path)
+    return FileResponse(
+        path,
+        filename=path.name,
+        media_type="application/vnd.openxmlformats-officedocument.presentationml"
+        ".presentation",
+    )
 
 
 # ----- agentes -----

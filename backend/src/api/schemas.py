@@ -71,6 +71,46 @@ class DraftOut(BaseModel):
     to: list[str]
 
 
+class ProposalItemIn(BaseModel):
+    descricao: str
+    quantidade: float = 1
+    unidade: str = "UN"
+    valor_unitario: float | None = None
+
+
+class ProposalIn(BaseModel):
+    omie_client_id: int | None = None
+    cliente: str
+    projeto: str
+    title: str
+    scope: list[str] = []
+    items: list[ProposalItemIn] = []
+    deadline: str = "A combinar"
+    conditions: list[str] = []
+    notes: list[str] = []
+    seller: str = ""
+
+
+class ProposalOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    run_id: int | None
+    omie_client_id: int | None
+    title: str
+    input_json: dict[str, Any]
+    pptx_path: str | None
+    onedrive_url: str | None
+    status: str
+    created_at: datetime
+
+
+class ProposalAccepted(BaseModel):
+    proposal_id: int
+    run_id: int
+    status: str
+
+
 class RunAccepted(BaseModel):
     run_id: int
     status: str

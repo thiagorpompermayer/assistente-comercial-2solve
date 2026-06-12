@@ -120,6 +120,24 @@ class EmailTriaged(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class Proposal(Base):
+    """Saída do proposal_agent: uma proposta PPTX gerada (ou em geração)."""
+
+    __tablename__ = "proposals"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    run_id: Mapped[int | None] = mapped_column(ForeignKey("agent_runs.id"), index=True)
+    omie_client_id: Mapped[int | None] = mapped_column(Integer, default=None)
+    title: Mapped[str] = mapped_column(String(255))
+    input_json: Mapped[dict[str, Any]] = mapped_column(JSON)
+    pptx_path: Mapped[str | None] = mapped_column(String(500), default=None)
+    onedrive_url: Mapped[str | None] = mapped_column(String(1000), default=None)
+    status: Mapped[str] = mapped_column(
+        String(20), default="draft", index=True
+    )  # draft|generated|error
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class ActionFlag(Base):
     """Liberação gradual de escrita externa, ação por ação (regra dura 2).
 

@@ -41,6 +41,20 @@ def test_faultstring_vira_omie_error():
 
 
 @respx.mock
+def test_get_client_consulta_por_codigo():
+    route = respx.post(f"{BASE}/geral/clientes/").mock(
+        return_value=httpx.Response(
+            200, json={"codigo_cliente_omie": 42, "razao_social": "USINA X S.A."}
+        )
+    )
+    data = make_client().get_client(42)
+    assert data["razao_social"] == "USINA X S.A."
+    body = json.loads(route.calls[0].request.content)
+    assert body["call"] == "ConsultarCliente"
+    assert body["param"] == [{"codigo_cliente_omie": 42}]
+
+
+@respx.mock
 def test_retry_em_500_e_sucesso_na_segunda():
     route = respx.post(f"{BASE}/crm/tarefas/")
     route.side_effect = [

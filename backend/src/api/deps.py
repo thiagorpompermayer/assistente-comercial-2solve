@@ -39,3 +39,18 @@ def get_graph_client():
     from src.connectors.ms365 import GraphClient
 
     return GraphClient()
+
+
+ProposalRunner = Callable[[int, int], None]
+"""Recebe (proposal_id, run_id) e executa a geração da proposta."""
+
+
+def get_proposal_runner() -> ProposalRunner:
+    def _run(proposal_id: int, run_id: int) -> None:
+        from src.agents.proposal_agent import ProposalAgent
+        from src.db.session import get_session_factory
+
+        agent = ProposalAgent(get_session_factory())
+        agent.run_generation(proposal_id, trigger="api", run_id=run_id)
+
+    return _run

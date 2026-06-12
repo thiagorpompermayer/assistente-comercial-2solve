@@ -91,3 +91,10 @@ class OmieClient:
             "ListarTarefas",
             {"pagina": page, "registros_por_pagina": per_page},
         )
+
+    def get_client(self, client_id: int) -> dict[str, Any]:
+        return self._call(
+            "geral/clientes",
+            "ConsultarCliente",
+            {"codigo_cliente_omie": client_id},
+        )

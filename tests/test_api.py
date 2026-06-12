@@ -4,8 +4,14 @@ import pytest
 from fastapi.testclient import TestClient
 
 from src import approvals
-from src.api.deps import get_db, get_email_runner, get_graph_client, get_monitor_runner
-from src.db.models import AgentRun, Alert, EmailTriaged
+from src.api.deps import (
+    get_db,
+    get_email_runner,
+    get_graph_client,
+    get_monitor_runner,
+    get_proposal_runner,
+)
+from src.db.models import AgentRun, Alert, EmailTriaged, Proposal
 from src.main import create_app
 
 
@@ -37,9 +43,19 @@ def client(session_factory):
 
         return _run
 
+    def _fake_proposal_runner_dep():
+        def _run(proposal_id: int, run_id: int) -> None:
+            with session_factory() as s:
+                s.get(Proposal, proposal_id).status = "generated"
+                s.get(AgentRun, run_id).status = "done"
+                s.commit()
+
+        return _run
+
     app.dependency_overrides[get_db] = _get_db
     app.dependency_overrides[get_monitor_runner] = _fake_runner_dep
     app.dependency_overrides[get_email_runner] = _fake_runner_dep
+    app.dependency_overrides[get_proposal_runner] = _fake_proposal_runner_dep
     app.dependency_overrides[get_graph_client] = lambda: StubGraph()
     return TestClient(app)
 
@@ -188,6 +204,49 @@ def test_rascunho_de_email_triado(client, session_factory):
 
     assert client.get(f"/api/v1/emails/{sem_draft_id}/draft").status_code == 404
     assert client.get("/api/v1/emails/9999/draft").status_code == 404
+
+
+def test_criar_proposta_retorna_202_e_executa(client, session_factory):
+    payload = {
+        "omie_client_id": 42,
+        "cliente": "Usina X",
+        "projeto": "Adequação",
+        "title": "Proposta Usina X",
+        "scope": ["Levantamento de campo"],
+        "items": [{"descricao": "Gateway", "quantidade": 1, "valor_unitario": 100.0}],
+        "deadline": "90 dias",
+        "conditions": ["28 dias após faturamento"],
+    }
+    response = client.post("/api/v1/proposals", json=payload)
+    assert response.status_code == 202
+    body = response.json()
+
+    detail = client.get(f"/api/v1/proposals/{body['proposal_id']}").json()
+    assert detail["status"] == "generated"  # runner fake rodou no background
+    assert detail["input_json"]["cliente"] == "Usina X"
+    assert detail["run_id"] == body["run_id"]
+
+    lista = client.get("/api/v1/proposals").json()
+    assert len(lista) == 1
+
+
+def test_download_de_proposta(client, session_factory, tmp_path):
+    pptx = tmp_path / "p.pptx"
+    pptx.write_bytes(b"fake-pptx")
+    with session_factory() as s:
+        com_arquivo = Proposal(title="A", input_json={}, pptx_path=str(pptx),
+                               status="generated")
+        sem_arquivo = Proposal(title="B", input_json={})
+        s.add_all([com_arquivo, sem_arquivo])
+        s.commit()
+        ok_id, missing_id = com_arquivo.id, sem_arquivo.id
+
+    ok = client.get(f"/api/v1/proposals/{ok_id}/download")
+    assert ok.status_code == 200
+    assert ok.content == b"fake-pptx"
+
+    assert client.get(f"/api/v1/proposals/{missing_id}/download").status_code == 404
+    assert client.get("/api/v1/proposals/9999/download").status_code == 404
 
 
 def test_disparo_manual_da_triagem_retorna_202_e_executa(client):

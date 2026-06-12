@@ -80,6 +80,18 @@ def test_move_to_deleted_e_reversivel():
 
 
 @respx.mock
+def test_upload_file_no_onedrive():
+    route = respx.put(
+        f"{GRAPH_BASE}/users/{MAILBOX}/drive/root:/Propostas Comerciais/p.pptx:/content"
+    ).mock(return_value=httpx.Response(201, json={"id": "od-1", "webUrl": "https://od/p"}))
+    item = make_client().upload_file("Propostas Comerciais/p.pptx", b"conteudo-pptx")
+    assert item["webUrl"] == "https://od/p"
+    request = route.calls[0].request
+    assert request.headers["Content-Type"] == "application/octet-stream"
+    assert request.content == b"conteudo-pptx"
+
+
+@respx.mock
 def test_erro_http_vira_graph_error_com_mensagem():
     respx.get(f"{GRAPH_BASE}/users/{MAILBOX}/mailFolders/inbox/messages").mock(
         return_value=httpx.Response(

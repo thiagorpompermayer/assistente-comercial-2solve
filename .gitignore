@@ -29,7 +29,15 @@ Thumbs.db
 
 # Saídas geradas
 *.pptx
-!backend/templates/**/*.pptx
+
+# Templates com dados reais de clientes — NUNCA versionar.
+# Só os assets da marca 2Solve (logo) entram no git.
+backend/templates/*
+!backend/templates/assets/
+!backend/templates/assets/**
 
 # Config local do Claude Code
 .claude/settings.local.json
+
+# Saidas de proposta geradas
+backend/generated/

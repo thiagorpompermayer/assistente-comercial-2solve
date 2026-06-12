@@ -62,6 +62,17 @@ EnvironmentFile=/opt/assistente/backend/.env
 WantedBy=multi-user.target
 ```
 
+## Propostas (Etapa 4)
+
+`POST /api/v1/proposals` recebe os inputs do frontend (cliente, projeto,
+escopo, itens com valores, prazo, condições) e dispara o `proposal_agent`
+(modelo `CLAUDE_MODEL_PROPOSAL`): consulta o cliente no Omie, redige o
+conteúdo, gera o PPTX no padrão visual 2Solve (`connectors/pptx_2solve.py`,
+identidade extraída de `templates/Petroreconcavo_Carnauba_rev00.pptx`) e
+publica no OneDrive (`ONEDRIVE_PROPOSALS_FOLDER`). Download local:
+`GET /api/v1/proposals/{id}/download`. Regra: itens e valores saem exatamente
+como informados — item sem valor vira "sob consulta", nunca preço inventado.
+
 ## Estado atual (Etapa 3)
 
 - Connector Omie **somente leitura** (clientes, oportunidades, tarefas).

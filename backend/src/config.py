@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     monitor_cron_hour: int = 6
     email_triage_cron_hour: int = 7
 
+    proposals_output_dir: str = "./generated/proposals"
+    onedrive_proposals_folder: str = "Propostas Comerciais"
+
 
 @lru_cache
 def get_settings() -> Settings:

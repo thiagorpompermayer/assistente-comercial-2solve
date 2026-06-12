@@ -180,7 +180,15 @@ registrando decisões tomadas.
   agendada diária (7h). 39 testes. Decisões: rascunho é escrita livre
   (nada sai da caixa) porém auditada; preview da aprovação carrega
   destinatário/assunto/resumo para o aprovador decidir sem abrir o Outlook.
-- [ ] 4. Propostas/slides
+- [x] 4. Propostas/slides — (2026-06-12) `connectors/pptx_2solve.py` (gerador
+  com identidade extraída do template real: fundo #0A0E1A, ciano #03E8DC,
+  Work Sans, rodapé "CLIENTE • PROJETO", logo em templates/assets/);
+  `proposal_agent` com modelo de proposta (Opus): consulta cliente no Omie,
+  redige conteúdo, gera PPTX e publica no OneDrive. Endpoints `/proposals`
+  (POST 202, GET, download). 50 testes. Decisões: OneDrive write é direto
+  (permitido pela tabela de agentes) porém auditado; valores dos itens saem
+  exatamente como informados (sem valor → "sob consulta"); estrutura
+  comercial (condições/validade/dados ToSolve) espelha os PDFs oficiais.
 - [ ] 5. Escrita no CRM
 - [ ] 6. Engenharia
 - [ ] 7. Dashboards + advisor

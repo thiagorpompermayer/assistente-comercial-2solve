@@ -160,3 +160,27 @@ class GraphClient:
             f"/users/{self._mailbox}/messages/{message_id}/move",
             json={"destinationId": "deleteditems"},
         )
+
+    # ----- OneDrive (escrita permitida ao proposal_agent — auditada) -----
+
+    def upload_file(self, remote_path: str, content: bytes) -> dict[str, Any]:
+        """Upload simples (< 4 MB) no OneDrive da caixa comercial.
+
+        remote_path relativo à raiz, ex.: "Propostas/Proposta_X.pptx".
+        Retorna o driveItem (com webUrl).
+        """
+        response = self._http.put(
+            f"{GRAPH_BASE}/users/{self._mailbox}/drive/root:/{remote_path}:/content",
+            content=content,
+            headers={
+                "Authorization": f"Bearer {self._token_provider()}",
+                "Content-Type": "application/octet-stream",
+            },
+        )
+        if response.status_code >= 400:
+            try:
+                detail = response.json().get("error", {}).get("message", response.text)
+            except ValueError:
+                detail = response.text
+            raise GraphError(f"Graph HTTP {response.status_code}: {detail}")
+        return response.json()
