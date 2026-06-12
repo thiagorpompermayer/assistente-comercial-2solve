@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(py -3.12 --version)",
+      "Bash(py --version)",
+      "Bash(py -0)",
+      "Bash(py -3.12 -m venv .venv)",
+      "Bash(.venv/Scripts/python -m pip install --quiet --upgrade pip)",
+      "Bash(.venv/Scripts/python -m pip install --quiet -e \".[dev]\")",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(.venv/Scripts/python -m pytest -q)",
+      "Bash(.venv/Scripts/python -m ruff check src ../tests)",
+      "Bash(.venv/Scripts/python -m ruff check --fix src ../tests)",
+      "Bash(.venv/Scripts/python -c \"from src.main import app; print\\('app ok:', app.title\\); print\\('rotas:', sorted\\({r.path for r in app.routes if r.path.startswith\\('/api'\\)}\\)\\)\")"
+    ]
+  }
+}

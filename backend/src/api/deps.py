@@ -1,0 +1,21 @@
+"""Dependencies do FastAPI — pontos de injeção sobrescritos nos testes."""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+
+from src.db.session import get_db  # noqa: F401 — reexportado como dependency padrão
+
+MonitorRunner = Callable[[int], None]
+"""Recebe o run_id pré-criado (status queued) e executa a varredura do monitor."""
+
+
+def get_monitor_runner() -> MonitorRunner:
+    def _run(run_id: int) -> None:
+        from src.agents.monitor_agent import MonitorAgent, build_overdue_demand
+        from src.db.session import get_session_factory
+
+        agent = MonitorAgent(get_session_factory())
+        agent.run_demand(build_overdue_demand(), trigger="api", run_id=run_id)
+
+    return _run

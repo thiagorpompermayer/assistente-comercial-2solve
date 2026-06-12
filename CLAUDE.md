@@ -162,7 +162,15 @@ registrando decisões tomadas.
   Alembic desde o início; `pipeline_cache` para dashboard; JWT local → Entra ID
   depois; flags de liberação por ação em `action_flags`; deleção nunca
   auto-executa.
-- [ ] 2. Fundação backend
+- [x] 2. Fundação backend — (2026-06-12) FastAPI + SQLAlchemy/SQLite (WAL),
+  modelos `agent_runs`/`audit_log`/`approvals`/`alerts`/`action_flags`,
+  connectors Omie e Graph em modo leitura, `agents/base.py` (loop cru com
+  retries; erros viram tool_result), `monitor_agent` + cron diário, API v1
+  (health, alerts, approvals, run monitor), 26 testes pytest mockados.
+  Decisões: handlers acessam sessão/run via atributos do agente; Alembic
+  adiado para quando o schema estabilizar (create_all por ora — desvio
+  consciente da arquitetura, revisar antes da migração a Postgres);
+  payload de aprovação congelado byte a byte e decisão única (409 na 2ª).
 - [ ] 3. Email
 - [ ] 4. Propostas/slides
 - [ ] 5. Escrita no CRM
