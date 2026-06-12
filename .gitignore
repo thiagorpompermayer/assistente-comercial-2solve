@@ -1,0 +1,32 @@
+# Segredos — nunca versionar
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Banco local (SQLite)
+*.db
+*.sqlite3
+
+# Node / frontend
+node_modules/
+frontend/dist/
+
+# IDE / SO
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Saídas geradas
+*.pptx
+!backend/templates/**/*.pptx
