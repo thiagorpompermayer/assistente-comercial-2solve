@@ -158,7 +158,10 @@ registrando decisões tomadas.
 - [x] 0. Conceito — `docs/01-conceito.md` (2026-06-12). Decisões: ordem de
   entrega prioriza leitura pura → email gated → escrita CRM; voz e ML ficam
   pós-v1; escopo financeiro do Omie fora da v1.
-- [ ] 1. Arquitetura
+- [x] 1. Arquitetura — `docs/02-arquitetura.md` (2026-06-12). Decisões:
+  Alembic desde o início; `pipeline_cache` para dashboard; JWT local → Entra ID
+  depois; flags de liberação por ação em `action_flags`; deleção nunca
+  auto-executa.
 - [ ] 2. Fundação backend
 - [ ] 3. Email
 - [ ] 4. Propostas/slides
