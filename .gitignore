@@ -30,3 +30,6 @@ Thumbs.db
 # Saídas geradas
 *.pptx
 !backend/templates/**/*.pptx
+
+# Config local do Claude Code
+.claude/settings.local.json
