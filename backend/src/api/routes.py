@@ -12,21 +12,27 @@ from sqlalchemy.orm import Session
 from src import approvals as approvals_gate
 from src.api import schemas
 from src.api.deps import (
+    AdvisorRunner,
     CrmRunner,
     EmailRunner,
     EngineeringRunner,
     MonitorRunner,
+    PipelineSyncer,
     ProposalRunner,
+    get_advisor_runner,
     get_crm_runner,
     get_db,
     get_email_runner,
     get_engineering_runner,
     get_graph_client,
     get_monitor_runner,
+    get_pipeline_syncer,
     get_proposal_runner,
 )
 from src.connectors.ms365 import GraphClient, GraphError
+from src.dashboard import operations_summary, pipeline_summary
 from src.db.models import (
+    AdvisorAnalysis,
     AgentRun,
     Alert,
     Approval,
@@ -254,6 +260,51 @@ def download_proposal(proposal_id: int, db: Session = Depends(get_db)) -> FileRe
         media_type="application/vnd.openxmlformats-officedocument.presentationml"
         ".presentation",
     )
+
+
+# ----- dashboards e advisor (Etapa 7) -----
+
+
+@router.get("/dashboard/pipeline")
+def dashboard_pipeline(db: Session = Depends(get_db)) -> dict:
+    return pipeline_summary(db)
+
+
+@router.get("/dashboard/operations")
+def dashboard_operations(days: int = 30, db: Session = Depends(get_db)) -> dict:
+    return operations_summary(db, days=days)
+
+
+@router.post("/dashboard/sync", status_code=202)
+def dashboard_sync(
+    background: BackgroundTasks,
+    syncer: PipelineSyncer = Depends(get_pipeline_syncer),
+) -> dict:
+    background.add_task(syncer)
+    return {"status": "sincronização iniciada"}
+
+
+@router.get("/advisor/analysis", response_model=schemas.AdvisorAnalysisOut)
+def latest_advisor_analysis(db: Session = Depends(get_db)) -> AdvisorAnalysis:
+    analysis = db.scalars(
+        select(AdvisorAnalysis).order_by(AdvisorAnalysis.created_at.desc()).limit(1)
+    ).first()
+    if analysis is None:
+        raise HTTPException(404, detail="nenhuma análise do advisor registrada ainda")
+    return analysis
+
+
+@router.post("/agents/advisor/run", response_model=schemas.RunAccepted, status_code=202)
+def run_advisor(
+    background: BackgroundTasks,
+    db: Session = Depends(get_db),
+    runner: AdvisorRunner = Depends(get_advisor_runner),
+) -> schemas.RunAccepted:
+    run = AgentRun(agent="advisor", trigger="api", status="queued")
+    db.add(run)
+    db.commit()
+    background.add_task(runner, run.id)
+    return schemas.RunAccepted(run_id=run.id, status="queued")
 
 
 # ----- agentes -----

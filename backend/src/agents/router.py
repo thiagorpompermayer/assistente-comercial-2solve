@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session, sessionmaker
 
+from src.agents.advisor_agent import AdvisorAgent
 from src.agents.base import AgentResult, BaseAgent
 from src.agents.crm_agent import CrmAgent
 from src.agents.email_agent import EmailAgent
@@ -27,6 +28,7 @@ AGENT_REGISTRY: dict[str, type[BaseAgent]] = {
     "proposal": ProposalAgent,
     "crm": CrmAgent,
     "engineering": EngineeringAgent,
+    "advisor": AdvisorAgent,
 }
 
 

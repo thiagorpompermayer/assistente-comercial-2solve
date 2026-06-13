@@ -5,15 +5,25 @@ from fastapi.testclient import TestClient
 
 from src import approvals
 from src.api.deps import (
+    get_advisor_runner,
     get_crm_runner,
     get_db,
     get_email_runner,
     get_engineering_runner,
     get_graph_client,
     get_monitor_runner,
+    get_pipeline_syncer,
     get_proposal_runner,
 )
-from src.db.models import AgentRun, Alert, EmailTriaged, EngineeringArtifact, Proposal
+from src.db.models import (
+    AdvisorAnalysis,
+    AgentRun,
+    Alert,
+    EmailTriaged,
+    EngineeringArtifact,
+    PipelineCache,
+    Proposal,
+)
 from src.main import create_app
 
 
@@ -82,12 +92,33 @@ def client(session_factory):
 
         return _run
 
+    def _fake_advisor_runner_dep():
+        def _run(run_id: int) -> None:
+            with session_factory() as s:
+                s.get(AgentRun, run_id).status = "done"
+                s.add(
+                    AdvisorAnalysis(
+                        run_id=run_id,
+                        summary="Foco: reativar Usina X.",
+                        recommendations_json=[{"prioridade": "alta", "titulo": "Usina X",
+                                               "proximo_passo": "ligar"}],
+                    )
+                )
+                s.commit()
+
+        return _run
+
+    def _fake_pipeline_syncer_dep():
+        return lambda: {"sincronizadas": 0}
+
     app.dependency_overrides[get_db] = _get_db
     app.dependency_overrides[get_monitor_runner] = _fake_runner_dep
     app.dependency_overrides[get_email_runner] = _fake_runner_dep
     app.dependency_overrides[get_proposal_runner] = _fake_proposal_runner_dep
     app.dependency_overrides[get_crm_runner] = _fake_crm_runner_dep
     app.dependency_overrides[get_engineering_runner] = _fake_engineering_runner_dep
+    app.dependency_overrides[get_advisor_runner] = _fake_advisor_runner_dep
+    app.dependency_overrides[get_pipeline_syncer] = _fake_pipeline_syncer_dep
     app.dependency_overrides[get_graph_client] = lambda: StubGraph()
     return TestClient(app)
 
@@ -286,6 +317,42 @@ def test_disparo_manual_da_triagem_retorna_202_e_executa(client):
     assert response.status_code == 202
     run_id = response.json()["run_id"]
     assert client.get(f"/api/v1/runs/{run_id}").json()["status"] == "done"
+
+
+def test_dashboard_pipeline_e_operations(client, session_factory):
+    with session_factory() as s:
+        s.add_all([
+            PipelineCache(omie_id="1", etapa="Proposta enviada", valor=100_000.0),
+            EmailTriaged(graph_message_id="m1", classification="lead", summary="x"),
+        ])
+        s.commit()
+
+    pipeline = client.get("/api/v1/dashboard/pipeline").json()
+    assert pipeline["total_oportunidades"] == 1
+    assert pipeline["valor_total"] == 100_000.0
+
+    ops = client.get("/api/v1/dashboard/operations").json()
+    assert ops["emails_triados_periodo"] == 1
+
+
+def test_dashboard_sync_retorna_202(client):
+    assert client.post("/api/v1/dashboard/sync").status_code == 202
+
+
+def test_advisor_run_e_consulta_da_analise(client):
+    # sem análise ainda → 404
+    assert client.get("/api/v1/advisor/analysis").status_code == 404
+
+    response = client.post("/api/v1/agents/advisor/run")
+    assert response.status_code == 202
+    run_id = response.json()["run_id"]
+    assert client.get(f"/api/v1/runs/{run_id}").json()["status"] == "done"
+
+    analysis = client.get("/api/v1/advisor/analysis")
+    assert analysis.status_code == 200
+    body = analysis.json()
+    assert "Usina X" in body["summary"]
+    assert body["recommendations_json"][0]["prioridade"] == "alta"
 
 
 def test_engineering_run_e_listagem_de_artefatos(client, session_factory):

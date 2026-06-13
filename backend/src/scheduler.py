@@ -31,6 +31,16 @@ def _run_email_triage() -> None:
     logger.info("scheduler: triagem concluída (run %s, %s)", result.run_id, result.status)
 
 
+def _run_pipeline_sync() -> None:
+    from src.dashboard import sync_pipeline_cache
+    from src.db.session import get_session_factory
+
+    logger.info("scheduler: sincronizando pipeline_cache a partir do Omie")
+    with get_session_factory()() as session:
+        result = sync_pipeline_cache(session)
+    logger.info("scheduler: sync de pipeline concluído (%s)", result)
+
+
 def create_scheduler() -> BackgroundScheduler:
     settings = get_settings()
     scheduler = BackgroundScheduler(timezone="America/Sao_Paulo")
@@ -46,6 +56,13 @@ def create_scheduler() -> BackgroundScheduler:
         trigger="cron",
         hour=settings.email_triage_cron_hour,
         id="email_inbox_triage",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        _run_pipeline_sync,
+        trigger="cron",
+        hour=settings.pipeline_sync_cron_hour,
+        id="pipeline_cache_sync",
         replace_existing=True,
     )
     return scheduler

@@ -84,3 +84,33 @@ def get_engineering_runner() -> EngineeringRunner:
         agent.run_demand(demand, trigger="api", run_id=run_id, proposal_id=proposal_id)
 
     return _run
+
+
+AdvisorRunner = Callable[[int], None]
+"""Recebe o run_id pré-criado e executa a análise do advisor."""
+
+
+def get_advisor_runner() -> AdvisorRunner:
+    def _run(run_id: int) -> None:
+        from src.agents.advisor_agent import AdvisorAgent
+        from src.db.session import get_session_factory
+
+        agent = AdvisorAgent(get_session_factory())
+        agent.run_analysis(trigger="api", run_id=run_id)
+
+    return _run
+
+
+PipelineSyncer = Callable[[], dict]
+"""Sincroniza o pipeline_cache a partir do Omie."""
+
+
+def get_pipeline_syncer() -> PipelineSyncer:
+    def _sync() -> dict:
+        from src.dashboard import sync_pipeline_cache
+        from src.db.session import get_session_factory
+
+        with get_session_factory()() as session:
+            return sync_pipeline_cache(session)
+
+    return _sync

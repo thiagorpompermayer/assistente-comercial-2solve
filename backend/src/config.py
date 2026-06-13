@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     scheduler_enabled: bool = False
     monitor_cron_hour: int = 6
     email_triage_cron_hour: int = 7
+    pipeline_sync_cron_hour: int = 5
 
     proposals_output_dir: str = "./generated/proposals"
     onedrive_proposals_folder: str = "Propostas Comerciais"

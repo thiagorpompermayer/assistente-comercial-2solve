@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -158,6 +158,39 @@ class EngineeringArtifact(Base):
     title: Mapped[str] = mapped_column(String(255))
     content_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
     content_text: Mapped[str] = mapped_column(Text, default="")  # Mermaid ou Markdown
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class PipelineCache(Base):
+    """Cache local de oportunidades do Omie para o dashboard e o advisor.
+
+    Evita bater no Omie ao vivo a cada consulta (risco R1). Sincronizado por
+    job agendado / endpoint manual. `payload_json` guarda o registro cru.
+    """
+
+    __tablename__ = "pipeline_cache"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    omie_id: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    titulo: Mapped[str | None] = mapped_column(String(255), default=None)
+    cliente_ref: Mapped[str | None] = mapped_column(String(100), default=None)
+    etapa: Mapped[str] = mapped_column(String(120), default="(sem etapa)", index=True)
+    etapa_codigo: Mapped[str | None] = mapped_column(String(20), default=None)
+    valor: Mapped[float] = mapped_column(Float, default=0.0)
+    status: Mapped[str | None] = mapped_column(String(40), default=None)
+    payload_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
+    synced_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class AdvisorAnalysis(Base):
+    """Saída do advisor_agent: análise do pipeline e recomendações."""
+
+    __tablename__ = "advisor_analyses"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    run_id: Mapped[int | None] = mapped_column(ForeignKey("agent_runs.id"), index=True)
+    summary: Mapped[str] = mapped_column(Text, default="")
+    recommendations_json: Mapped[list[Any] | None] = mapped_column(JSON, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 

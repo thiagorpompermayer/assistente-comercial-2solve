@@ -212,7 +212,18 @@ registrando decisões tomadas.
   consome modificador inequívoco (D/K) após a 1ª letra e trata o resto como
   função; geração é determinística (Mermaid), conteúdo técnico/textual fica
   com o LLM.
-- [ ] 7. Dashboards + advisor
+- [x] 7. Dashboards + advisor — (2026-06-13) `pipeline_cache` + sync do Omie
+  (paginado, resolve nome de etapa, upsert por omie_id, resiliente a falha nas
+  etapas); agregações `src/dashboard.py` (pipeline por estágio/valor/ticket
+  médio; operação: emails, fila de aprovações, propostas, alertas, runs) —
+  leem só o banco local, offline. `advisor_agent` (modelo de raciocínio pesado)
+  consulta os resumos + alertas e registra análise priorizada em
+  `advisor_analyses`. Endpoints `/dashboard/pipeline|operations|sync`,
+  `/advisor/analysis`, `/agents/advisor/run`; sync agendado diário (5h).
+  87 testes. **v1 completa: 6 agentes (monitor, email, proposal, crm,
+  engineering, advisor) sob o router próprio, todos auditados; escrita externa
+  sempre via portão.** Decisão: dashboard nunca consulta Omie ao vivo (lê o
+  cache) — resiliência ao risco R1.
 
 Documentos de apoio: `docs/00-prompts-etapas.md` (prompts de cada etapa) e
 `docs/00-indicadores-dashboard.md` (proposta inicial de indicadores).

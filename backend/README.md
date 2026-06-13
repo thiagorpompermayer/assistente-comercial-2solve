@@ -73,6 +73,22 @@ publica no OneDrive (`ONEDRIVE_PROPOSALS_FOLDER`). Download local:
 `GET /api/v1/proposals/{id}/download`. Regra: itens e valores saem exatamente
 como informados — item sem valor vira "sob consulta", nunca preço inventado.
 
+## Dashboards e advisor (Etapa 7 — fecha a v1)
+
+- `GET /api/v1/dashboard/pipeline` — pipeline comercial por estágio (valor,
+  quantidade, ticket médio), lido do `pipeline_cache` local.
+- `GET /api/v1/dashboard/operations` — métricas do assistente (emails triados,
+  fila de aprovações, executadas vs. rejeitadas, propostas, alertas, runs).
+- `POST /api/v1/dashboard/sync` — sincroniza o `pipeline_cache` a partir do
+  Omie (também roda no agendador, diário). O dashboard nunca consulta o Omie
+  ao vivo (resiliência — risco R1).
+- `POST /api/v1/agents/advisor/run` + `GET /api/v1/advisor/analysis` — o
+  `advisor_agent` (modelo de raciocínio pesado) lê os resumos e os alertas
+  abertos e registra uma análise do pipeline com recomendações priorizadas.
+
+As funções de agregação (`src/dashboard.py`) leem só o banco local — rodam
+offline e são testadas sem credenciais.
+
 ## Engenharia (Etapa 6)
 
 `POST /api/v1/agents/engineering/run` recebe uma demanda livre (opcionalmente

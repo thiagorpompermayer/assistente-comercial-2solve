@@ -135,6 +135,16 @@ class EngineeringArtifactOut(BaseModel):
     created_at: datetime
 
 
+class AdvisorAnalysisOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    run_id: int | None
+    summary: str
+    recommendations_json: list[Any] | None
+    created_at: datetime
+
+
 class RunAccepted(BaseModel):
     run_id: int
     status: str
