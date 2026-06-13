@@ -8,11 +8,12 @@ from src.api.deps import (
     get_crm_runner,
     get_db,
     get_email_runner,
+    get_engineering_runner,
     get_graph_client,
     get_monitor_runner,
     get_proposal_runner,
 )
-from src.db.models import AgentRun, Alert, EmailTriaged, Proposal
+from src.db.models import AgentRun, Alert, EmailTriaged, EngineeringArtifact, Proposal
 from src.main import create_app
 
 
@@ -63,11 +64,30 @@ def client(session_factory):
 
         return _run
 
+    def _fake_engineering_runner_dep():
+        def _run(demand: str, run_id: int, proposal_id: int | None) -> None:
+            with session_factory() as s:
+                run = s.get(AgentRun, run_id)
+                run.status = "done"
+                s.add(
+                    EngineeringArtifact(
+                        run_id=run_id,
+                        proposal_id=proposal_id,
+                        kind="flowchart",
+                        title="PFD",
+                        content_text="flowchart LR",
+                    )
+                )
+                s.commit()
+
+        return _run
+
     app.dependency_overrides[get_db] = _get_db
     app.dependency_overrides[get_monitor_runner] = _fake_runner_dep
     app.dependency_overrides[get_email_runner] = _fake_runner_dep
     app.dependency_overrides[get_proposal_runner] = _fake_proposal_runner_dep
     app.dependency_overrides[get_crm_runner] = _fake_crm_runner_dep
+    app.dependency_overrides[get_engineering_runner] = _fake_engineering_runner_dep
     app.dependency_overrides[get_graph_client] = lambda: StubGraph()
     return TestClient(app)
 
@@ -266,6 +286,31 @@ def test_disparo_manual_da_triagem_retorna_202_e_executa(client):
     assert response.status_code == 202
     run_id = response.json()["run_id"]
     assert client.get(f"/api/v1/runs/{run_id}").json()["status"] == "done"
+
+
+def test_engineering_run_e_listagem_de_artefatos(client, session_factory):
+    response = client.post(
+        "/api/v1/agents/engineering/run",
+        json={"demand": "Monte o PFD da área 100"},
+    )
+    assert response.status_code == 202
+    run_id = response.json()["run_id"]
+    assert client.get(f"/api/v1/runs/{run_id}").json()["status"] == "done"
+
+    artifacts = client.get("/api/v1/engineering/artifacts").json()
+    assert len(artifacts) == 1
+    assert artifacts[0]["kind"] == "flowchart"
+    artifact_id = artifacts[0]["id"]
+    assert client.get(f"/api/v1/engineering/artifacts/{artifact_id}").status_code == 200
+    assert client.get("/api/v1/engineering/artifacts/9999").status_code == 404
+
+
+def test_engineering_run_com_proposta_inexistente_da_404(client):
+    response = client.post(
+        "/api/v1/agents/engineering/run",
+        json={"demand": "x", "proposal_id": 9999},
+    )
+    assert response.status_code == 404
 
 
 def test_crm_run_aceita_demanda_e_executa(client):

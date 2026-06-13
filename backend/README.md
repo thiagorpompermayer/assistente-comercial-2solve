@@ -73,6 +73,18 @@ publica no OneDrive (`ONEDRIVE_PROPOSALS_FOLDER`). Download local:
 `GET /api/v1/proposals/{id}/download`. Regra: itens e valores saem exatamente
 como informados — item sem valor vira "sob consulta", nunca preço inventado.
 
+## Engenharia (Etapa 6)
+
+`POST /api/v1/agents/engineering/run` recebe uma demanda livre (opcionalmente
+`proposal_id`) e dispara o `engineering_agent` (engenheiro de automação e
+instrumentação): valida TAGs ISA-5.1, monta listas de instrumentos, gera
+fluxogramas de processo em Mermaid e memoriais. A lógica fica em funções puras
+testáveis (`connectors/engineering.py`); os artefatos são gravados em
+`engineering_artifacts` (escrita LOCAL auditada, sem portão — não toca sistema
+externo). Consulta: `GET /engineering/artifacts` (filtro por `kind` e
+`proposal_id`) e `GET /engineering/artifacts/{id}`. Artefatos vinculados a uma
+proposta podem alimentar o `proposal_agent`.
+
 ## Escrita no CRM (Etapa 5)
 
 `POST /api/v1/agents/crm/run` recebe uma demanda livre (ex.: "cadastre o

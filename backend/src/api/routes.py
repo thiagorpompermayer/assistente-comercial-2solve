@@ -14,17 +14,26 @@ from src.api import schemas
 from src.api.deps import (
     CrmRunner,
     EmailRunner,
+    EngineeringRunner,
     MonitorRunner,
     ProposalRunner,
     get_crm_runner,
     get_db,
     get_email_runner,
+    get_engineering_runner,
     get_graph_client,
     get_monitor_runner,
     get_proposal_runner,
 )
 from src.connectors.ms365 import GraphClient, GraphError
-from src.db.models import AgentRun, Alert, Approval, EmailTriaged, Proposal
+from src.db.models import (
+    AgentRun,
+    Alert,
+    Approval,
+    EmailTriaged,
+    EngineeringArtifact,
+    Proposal,
+)
 
 router = APIRouter()
 
@@ -275,6 +284,61 @@ def run_crm(
     db.commit()
     background.add_task(runner, body.demand, run.id)
     return schemas.RunAccepted(run_id=run.id, status="queued")
+
+
+# ----- engenharia (Etapa 6) -----
+
+
+@router.post("/agents/engineering/run", response_model=schemas.RunAccepted, status_code=202)
+def run_engineering(
+    body: schemas.EngineeringDemandIn,
+    background: BackgroundTasks,
+    db: Session = Depends(get_db),
+    runner: EngineeringRunner = Depends(get_engineering_runner),
+) -> schemas.RunAccepted:
+    if body.proposal_id is not None and db.get(Proposal, body.proposal_id) is None:
+        raise HTTPException(404, detail=f"proposta {body.proposal_id} não existe")
+    run = AgentRun(agent="engineering", trigger="api", status="queued")
+    db.add(run)
+    db.commit()
+    background.add_task(runner, body.demand, run.id, body.proposal_id)
+    return schemas.RunAccepted(run_id=run.id, status="queued")
+
+
+@router.get(
+    "/engineering/artifacts", response_model=list[schemas.EngineeringArtifactOut]
+)
+def list_engineering_artifacts(
+    kind: str | None = None,
+    proposal_id: int | None = None,
+    limit: int = 100,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+) -> list[EngineeringArtifact]:
+    query = (
+        select(EngineeringArtifact)
+        .order_by(EngineeringArtifact.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    if kind:
+        query = query.where(EngineeringArtifact.kind == kind)
+    if proposal_id is not None:
+        query = query.where(EngineeringArtifact.proposal_id == proposal_id)
+    return list(db.scalars(query))
+
+
+@router.get(
+    "/engineering/artifacts/{artifact_id}",
+    response_model=schemas.EngineeringArtifactOut,
+)
+def get_engineering_artifact(
+    artifact_id: int, db: Session = Depends(get_db)
+) -> EngineeringArtifact:
+    artifact = db.get(EngineeringArtifact, artifact_id)
+    if artifact is None:
+        raise HTTPException(404, detail=f"artefato {artifact_id} não existe")
+    return artifact
 
 
 @router.get("/runs/{run_id}", response_model=schemas.RunOut)

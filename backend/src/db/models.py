@@ -138,6 +138,29 @@ class Proposal(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class EngineeringArtifact(Base):
+    """Saída do engineering_agent: conteúdo técnico para propostas.
+
+    Escrita LOCAL (não toca sistema externo) — livre, porém auditada.
+    Pode ser vinculada a uma proposta para alimentar o proposal_agent.
+    """
+
+    __tablename__ = "engineering_artifacts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    run_id: Mapped[int | None] = mapped_column(ForeignKey("agent_runs.id"), index=True)
+    proposal_id: Mapped[int | None] = mapped_column(
+        ForeignKey("proposals.id"), default=None, index=True
+    )
+    kind: Mapped[str] = mapped_column(
+        String(30), index=True
+    )  # tag_analysis|instrument_list|flowchart|memorial
+    title: Mapped[str] = mapped_column(String(255))
+    content_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
+    content_text: Mapped[str] = mapped_column(Text, default="")  # Mermaid ou Markdown
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class ActionFlag(Base):
     """Liberação gradual de escrita externa, ação por ação (regra dura 2).
 

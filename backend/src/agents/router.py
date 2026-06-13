@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from src.agents.base import AgentResult, BaseAgent
 from src.agents.crm_agent import CrmAgent
 from src.agents.email_agent import EmailAgent
+from src.agents.engineering_agent import EngineeringAgent
 from src.agents.monitor_agent import MonitorAgent
 from src.agents.proposal_agent import ProposalAgent
 from src.db.session import get_session_factory
@@ -25,6 +26,7 @@ AGENT_REGISTRY: dict[str, type[BaseAgent]] = {
     "email": EmailAgent,
     "proposal": ProposalAgent,
     "crm": CrmAgent,
+    "engineering": EngineeringAgent,
 }
 
 

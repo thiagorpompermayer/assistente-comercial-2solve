@@ -69,3 +69,18 @@ def get_crm_runner() -> CrmRunner:
         agent.run_demand(demand, trigger="api", run_id=run_id)
 
     return _run
+
+
+EngineeringRunner = Callable[[str, int, int | None], None]
+"""Recebe (demanda livre, run_id, proposal_id opcional) e executa o engineering_agent."""
+
+
+def get_engineering_runner() -> EngineeringRunner:
+    def _run(demand: str, run_id: int, proposal_id: int | None) -> None:
+        from src.agents.engineering_agent import EngineeringAgent
+        from src.db.session import get_session_factory
+
+        agent = EngineeringAgent(get_session_factory())
+        agent.run_demand(demand, trigger="api", run_id=run_id, proposal_id=proposal_id)
+
+    return _run

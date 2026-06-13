@@ -116,6 +116,25 @@ class CrmDemandIn(BaseModel):
     demand: str
 
 
+class EngineeringDemandIn(BaseModel):
+    # Demanda livre para o engineering_agent; pode vincular a uma proposta.
+    demand: str
+    proposal_id: int | None = None
+
+
+class EngineeringArtifactOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    run_id: int | None
+    proposal_id: int | None
+    kind: str
+    title: str
+    content_json: dict[str, Any] | None
+    content_text: str
+    created_at: datetime
+
+
 class RunAccepted(BaseModel):
     run_id: int
     status: str

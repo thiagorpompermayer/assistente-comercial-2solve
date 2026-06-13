@@ -201,7 +201,17 @@ registrando decisões tomadas.
   cadastro; `omie_create`/`omie_update` podem auto-executar via flag (não são
   deleção), `omie_delete` segue proibido de auto-executar; agente não tem
   nenhuma ferramenta de exclusão de CRM.
-- [ ] 6. Engenharia
+- [x] 6. Engenharia — (2026-06-13) `engineering_agent`: análise/validação de
+  TAGs ISA-5.1 (tabelas de letras de variável/modificador/função), montagem de
+  lista de instrumentos (valida cada TAG + aponta duplicidade/pendência) e
+  fluxograma de processo em Mermaid; lógica em `connectors/engineering.py`
+  (funções puras). Artefatos em `engineering_artifacts` (escrita LOCAL
+  auditada, sem portão — não toca sistema externo), com `proposal_id` opcional
+  para alimentar o proposal_agent. Endpoints `/agents/engineering/run` (202),
+  `/engineering/artifacts` (lista/detalhe). 76 testes. Decisões: parser ISA
+  consome modificador inequívoco (D/K) após a 1ª letra e trata o resto como
+  função; geração é determinística (Mermaid), conteúdo técnico/textual fica
+  com o LLM.
 - [ ] 7. Dashboards + advisor
 
 Documentos de apoio: `docs/00-prompts-etapas.md` (prompts de cada etapa) e
