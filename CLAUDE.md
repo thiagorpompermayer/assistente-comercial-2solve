@@ -220,10 +220,15 @@ registrando decisões tomadas.
   consulta os resumos + alertas e registra análise priorizada em
   `advisor_analyses`. Endpoints `/dashboard/pipeline|operations|sync`,
   `/advisor/analysis`, `/agents/advisor/run`; sync agendado diário (5h).
-  87 testes. **v1 completa: 6 agentes (monitor, email, proposal, crm,
+  88 testes. **v1 completa: 6 agentes (monitor, email, proposal, crm,
   engineering, advisor) sob o router próprio, todos auditados; escrita externa
-  sempre via portão.** Decisão: dashboard nunca consulta Omie ao vivo (lê o
-  cache) — resiliência ao risco R1.
+  sempre via portão.** Decisões: dashboard nunca consulta Omie ao vivo (lê o
+  cache) — resiliência ao risco R1; advisor usa DOIS tiers de modelo por custo
+  e critério — loop de coleta (rotina) em Sonnet, e UMA chamada de raciocínio
+  pesado em Opus encapsulada em `gerar_analise_priorizada` (recebe dados
+  factuais do banco, saída estruturada forçada). `base._create_message` ganhou
+  overrides de model/system/tools/tool_choice para suportar esse tiering de
+  forma reusável.
 
 Documentos de apoio: `docs/00-prompts-etapas.md` (prompts de cada etapa) e
 `docs/00-indicadores-dashboard.md` (proposta inicial de indicadores).

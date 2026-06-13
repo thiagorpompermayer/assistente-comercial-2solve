@@ -83,8 +83,11 @@ como informados — item sem valor vira "sob consulta", nunca preço inventado.
   Omie (também roda no agendador, diário). O dashboard nunca consulta o Omie
   ao vivo (resiliência — risco R1).
 - `POST /api/v1/agents/advisor/run` + `GET /api/v1/advisor/analysis` — o
-  `advisor_agent` (modelo de raciocínio pesado) lê os resumos e os alertas
-  abertos e registra uma análise do pipeline com recomendações priorizadas.
+  `advisor_agent` lê os resumos e os alertas abertos e registra uma análise do
+  pipeline com recomendações priorizadas. **Dois tiers de modelo por custo:** o
+  loop que orquestra a coleta roda no modelo rotineiro (Sonnet) e a síntese
+  estratégica roda uma única vez no modelo pesado (Opus), com os números lidos
+  do banco (sem alucinação).
 
 As funções de agregação (`src/dashboard.py`) leem só o banco local — rodam
 offline e são testadas sem credenciais.

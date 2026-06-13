@@ -158,17 +158,34 @@ class BaseAgent:
             "is_error": is_error,
         }
 
-    def _create_message(self, messages: list[dict[str, Any]]) -> Any:
+    def _create_message(
+        self,
+        messages: list[dict[str, Any]],
+        *,
+        model: str | None = None,
+        system: str | None = None,
+        tools: list[Tool] | None = None,
+        tool_choice: dict[str, Any] | None = None,
+    ) -> Any:
+        """Uma chamada à API Messages com retries. Os overrides permitem que um
+        agente use modelos diferentes por etapa (ex.: Sonnet rotineiro x Opus
+        para raciocínio pesado) reusando a mesma lógica de retry."""
+        tool_defs = [t.to_anthropic() for t in (self._tools if tools is None else tools)]
+        kwargs: dict[str, Any] = {
+            "model": model or self._model,
+            "max_tokens": self._max_tokens,
+            "system": self.system_prompt if system is None else system,
+            "messages": messages,
+        }
+        if tool_defs:
+            kwargs["tools"] = tool_defs
+        if tool_choice is not None:
+            kwargs["tool_choice"] = tool_choice
+
         last_exc: Exception | None = None
         for attempt in range(len(RETRY_DELAYS) + 1):
             try:
-                return self._client.messages.create(
-                    model=self._model,
-                    max_tokens=self._max_tokens,
-                    system=self.system_prompt,
-                    tools=[tool.to_anthropic() for tool in self._tools],
-                    messages=messages,
-                )
+                return self._client.messages.create(**kwargs)
             except anthropic.APIConnectionError as exc:
                 last_exc = exc
             except anthropic.APIStatusError as exc:
