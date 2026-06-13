@@ -4,6 +4,14 @@ Permissões (CLAUDE.md, tabela de agentes):
 - Ler e rascunhar: direto no Graph (rascunho fica em Drafts, nada sai).
 - Enviar/encaminhar: a ferramenta só ENFILEIRA em `approvals` (email_send).
 - Excluir: idem (email_delete) — e deleção nunca auto-executa.
+
+Dois tiers de modelo, por custo e critério (CLAUDE.md):
+- ROTINA → modelo rotineiro (Sonnet): o loop de triagem — listar, ler,
+  classificar. Alto volume, barato.
+- ESCRITA AO CLIENTE → modelo topo de linha (Opus): a redação da resposta que
+  de fato vai para o cliente é feita numa chamada encapsulada em
+  `rascunhar_resposta`, a partir das diretrizes. O encaminhamento interno
+  segue rotineiro (comentário curto, mecânico).
 """
 
 from __future__ import annotations
@@ -16,6 +24,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from src.agents.base import BaseAgent, Tool
 from src.approvals import request_approval
+from src.config import get_settings
 from src.connectors.ms365 import GraphClient
 from src.db.models import EmailTriaged
 
@@ -34,9 +43,11 @@ Fluxo de trabalho:
 1. Liste os emails recentes e leia na íntegra os que parecem relevantes.
 2. Classifique TODOS os listados com classificar_email (resumo de 1-2 frases
    dizendo o que o remetente quer e a ação recomendada).
-3. Para lead e cliente_ativo que pedem resposta, rascunhe com
-   rascunhar_resposta: tom profissional e cordial, português brasileiro,
-   direto ao ponto, sem promessas de prazo ou preço que não estejam nos dados.
+3. Para lead e cliente_ativo que pedem resposta, chame rascunhar_resposta
+   passando as DIRETRIZES do que a resposta deve abordar (pontos, dados a
+   confirmar, próximo passo) — NÃO escreva você o texto final: a redação é
+   feita por um modelo de escrita cuidada. Não inclua promessas de prazo ou
+   preço que não estejam nos dados.
 4. Se um email deve ir para outra pessoa do time, use rascunhar_encaminhamento.
 5. Use solicitar_envio apenas quando o rascunho estiver completo e
    autossuficiente — um humano vai revisar e aprovar antes de sair.
@@ -47,6 +58,15 @@ Você não tem ferramenta de envio direto nem de exclusão direta: envio e
 exclusão viram pedidos de aprovação humana, sempre.
 
 Ao final, responda com um resumo em português da triagem feita."""
+
+# Redação da resposta ao cliente (modelo de escrita cuidada / Opus).
+DRAFT_SYSTEM_PROMPT = """Você redige respostas comerciais da 2Solve (automação e \
+instrumentação industrial) para clientes e leads. Escreva em português \
+brasileiro, tom profissional e cordial, direto ao ponto, na primeira pessoa do \
+plural (em nome da 2Solve). Use SOMENTE as informações das diretrizes e do \
+email recebido — nunca invente prazos, preços ou compromissos. Estruture com \
+saudação, corpo objetivo e fechamento com próximo passo claro. Responda apenas \
+com o corpo do email, sem assunto e sem comentários."""
 
 
 class EmailAgent(BaseAgent):
@@ -59,8 +79,12 @@ class EmailAgent(BaseAgent):
         graph: GraphClient | None = None,
         client: anthropic.Anthropic | None = None,
         model: str | None = None,
+        heavy_model: str | None = None,
     ) -> None:
+        settings = get_settings()
         self._graph = graph or GraphClient()
+        # rotina = Sonnet (loop de triagem); escrita ao cliente = Opus.
+        self._heavy_model = heavy_model or settings.claude_model_proposal
         tools = [
             Tool(
                 name="listar_emails",
@@ -110,15 +134,20 @@ class EmailAgent(BaseAgent):
             ),
             Tool(
                 name="rascunhar_resposta",
-                description="Cria um RASCUNHO de resposta no Outlook (não envia nada).",
+                description="Redige (com modelo de escrita cuidada) e cria um RASCUNHO "
+                "de resposta no Outlook a partir das DIRETRIZES. Não envia nada.",
                 input_schema={
                     "type": "object",
                     "properties": {
                         "message_id": {"type": "string"},
-                        "corpo": {"type": "string", "description": "texto da resposta"},
+                        "diretrizes": {"type": "string",
+                                       "description": "o que a resposta deve abordar: "
+                                       "pontos, dados a confirmar, próximo passo"},
+                        "instrucoes_tom": {"type": "string",
+                                           "description": "ajuste de tom opcional"},
                         "responder_todos": {"type": "boolean", "default": False},
                     },
-                    "required": ["message_id", "corpo"],
+                    "required": ["message_id", "diretrizes"],
                 },
                 handler=self._draft_reply,
                 is_write=True,  # escreve na pasta Drafts — permitido, auditado
@@ -231,12 +260,41 @@ class EmailAgent(BaseAgent):
             row.draft_id = draft_id
 
     def _draft_reply(
-        self, message_id: str, corpo: str, responder_todos: bool = False
+        self,
+        message_id: str,
+        diretrizes: str,
+        instrucoes_tom: str = "",
+        responder_todos: bool = False,
     ) -> dict[str, Any]:
+        original = self._graph.get_message(message_id)
+        corpo = self._compose_reply(original, diretrizes, instrucoes_tom)
         draft = self._graph.create_reply_draft(message_id, corpo, reply_all=responder_todos)
         draft_id = draft.get("id", "")
         self._link_draft(message_id, draft_id)
-        return {"draft_id": draft_id}
+        return {"draft_id": draft_id, "corpo": corpo}
+
+    def _compose_reply(
+        self, original: dict[str, Any], diretrizes: str, instrucoes_tom: str
+    ) -> str:
+        """Redação da resposta ao cliente — UMA chamada ao modelo topo de linha."""
+        corpo_original = (original.get("body") or {}).get("content", "")
+        user = (
+            f"Email recebido:\nAssunto: {original.get('subject', '')}\n"
+            f"{corpo_original}\n\n"
+            f"Diretrizes da resposta: {diretrizes}\n"
+            f"Tom: {instrucoes_tom or 'profissional e cordial'}\n"
+            "Escreva o corpo da resposta."
+        )
+        response = self._create_message(
+            [{"role": "user", "content": user}],
+            model=self._heavy_model,
+            system=DRAFT_SYSTEM_PROMPT,
+            tools=[],  # geração de texto puro, sem ferramentas
+        )
+        if self.run is not None:
+            self.run.tokens_in += response.usage.input_tokens
+            self.run.tokens_out += response.usage.output_tokens
+        return "".join(b.text for b in response.content if b.type == "text").strip()
 
     def _draft_forward(
         self, message_id: str, para: list[str], comentario: str = ""

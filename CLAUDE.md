@@ -180,6 +180,9 @@ registrando decisões tomadas.
   agendada diária (7h). 39 testes. Decisões: rascunho é escrita livre
   (nada sai da caixa) porém auditada; preview da aprovação carrega
   destinatário/assunto/resumo para o aprovador decidir sem abrir o Outlook.
+  (Atualizado: dois tiers de modelo — triagem rotineira em Sonnet; redação da
+  resposta ao cliente em Opus, via `rascunhar_resposta` que recebe diretrizes
+  e compõe o texto numa chamada encapsulada. Mesmo padrão do advisor.)
 - [x] 4. Propostas/slides — (2026-06-12) `connectors/pptx_2solve.py` (gerador
   com identidade extraída do template real: fundo #0A0E1A, ciano #03E8DC,
   Work Sans, rodapé "CLIENTE • PROJETO", logo em templates/assets/);

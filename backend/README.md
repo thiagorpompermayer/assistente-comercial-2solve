@@ -127,7 +127,10 @@ grava no Omie exatamente o payload congelado. Liberação gradual por
   encaminhamento no Outlook (cron diário 7h). O agente NÃO tem ferramenta de
   envio nem exclusão direta — `solicitar_envio`/`solicitar_exclusao` só
   enfileiram em `approvals`; exclusão aprovada move para Itens Excluídos
-  (reversível), nunca hard delete.
+  (reversível), nunca hard delete. **Dois tiers de modelo:** o loop de triagem
+  (listar/ler/classificar) roda no modelo rotineiro (Sonnet); a redação da
+  resposta ao cliente é feita pelo modelo de escrita cuidada (Opus) numa
+  chamada encapsulada em `rascunhar_resposta`.
 - Endpoints: `/emails/triaged`, `/emails/{id}/draft`,
   `/agents/email/triage`, além de alerts/approvals/runs da Etapa 2.
 - Toda chamada de ferramenta de agente é auditada em `audit_log`.

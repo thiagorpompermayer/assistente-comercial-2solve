@@ -73,10 +73,18 @@ def test_triagem_classifica_rascunha_e_enfileira_envio(session_factory):
                 ToolUseBlock(
                     "t3",
                     "rascunhar_resposta",
-                    {"message_id": "m1", "corpo": "Olá João, obrigado pelo contato..."},
+                    {"message_id": "m1",
+                     "diretrizes": "Agradecer o contato, confirmar interesse e "
+                     "propor visita técnica para levantamento."},
                 )
             ],
             "tool_use",
+        ),
+        # redação da resposta (modelo de escrita cuidada, dentro do handler)
+        FakeResponse(
+            [TextBlock("Prezado João,\n\nObrigado pelo contato. Podemos agendar uma "
+                       "visita técnica para o levantamento.\n\nAtenciosamente,\n2Solve")],
+            "end_turn",
         ),
         FakeResponse(
             [
@@ -115,7 +123,24 @@ def test_triagem_classifica_rascunha_e_enfileira_envio(session_factory):
         assert "joao@usinax.com" in approval.preview_text
         assert approval.run_id == result.run_id
 
-    assert graph.reply_drafts == [("m1", "Olá João, obrigado pelo contato...", False)]
+    # o corpo veio da redação (modelo de escrita cuidada), não do loop de triagem
+    assert len(graph.reply_drafts) == 1
+    msg_id, corpo, reply_all = graph.reply_drafts[0]
+    assert msg_id == "m1"
+    assert "visita técnica" in corpo
+    assert reply_all is False
+
+    # tiering: triagem no modelo rotineiro, redação no modelo pesado
+    from src.config import get_settings
+
+    settings = get_settings()
+    calls = agent._client.messages.calls
+    # a chamada de redação é a única sem ferramentas (geração de texto puro)
+    draft_calls = [c for c in calls if not c.get("tools")]
+    assert len(draft_calls) == 1
+    assert draft_calls[0]["model"] == settings.claude_model_proposal
+    triage_calls = [c for c in calls if c.get("tools")]
+    assert all(c["model"] == settings.claude_model for c in triage_calls)
 
 
 def test_exclusao_sempre_vira_aprovacao_pendente(session_factory):
