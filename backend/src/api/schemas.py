@@ -111,6 +111,11 @@ class ProposalAccepted(BaseModel):
     status: str
 
 
+class CrmDemandIn(BaseModel):
+    # Demanda livre para o crm_agent (ex.: "cadastre o cliente X com CNPJ ...").
+    demand: str
+
+
 class RunAccepted(BaseModel):
     run_id: int
     status: str

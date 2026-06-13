@@ -1,10 +1,14 @@
-"""Cliente REST do Omie — SOMENTE LEITURA nesta fase (Etapa 2).
+"""Cliente REST do Omie — leitura livre + escrita via executores do portão.
 
 Padrão Omie: POST em {base}/{endpoint}/ com corpo
 {"call": ..., "app_key": ..., "app_secret": ..., "param": [{...}]}.
 Erros de negócio voltam como 200 com "faultstring" no corpo.
 
 Retries exponenciais para 429/5xx/erros de transporte (risco R1).
+
+ATENÇÃO (regras duras 1 e 2): os métodos da seção "escritas" só podem ser
+chamados pelos executores do portão de aprovação (src/executors.py) — nunca
+diretamente por ferramenta de agente. O crm_agent apenas ENFILEIRA pedidos.
 """
 
 from __future__ import annotations
@@ -98,3 +102,33 @@ class OmieClient:
             "ConsultarCliente",
             {"codigo_cliente_omie": client_id},
         )
+
+    def find_client_by_document(self, cnpj_cpf: str) -> dict[str, Any]:
+        """Busca um cliente pelo CNPJ/CPF (filtro do ListarClientes)."""
+        return self._call(
+            "geral/clientes",
+            "ListarClientes",
+            {
+                "pagina": 1,
+                "registros_por_pagina": 5,
+                "clientesFiltro": {"cnpj_cpf": cnpj_cpf},
+            },
+        )
+
+    def list_opportunity_stages(self) -> dict[str, Any]:
+        """Etapas do funil cadastradas no Omie (para validar movimentação)."""
+        return self._call("crm/oportunidades-etapas", "ListarEtapas", {})
+
+    # ----- escritas — SÓ via executores do portão (src/executors.py) -----
+
+    def create_client(self, data: dict[str, Any]) -> dict[str, Any]:
+        return self._call("geral/clientes", "IncluirCliente", data)
+
+    def update_client(self, data: dict[str, Any]) -> dict[str, Any]:
+        return self._call("geral/clientes", "AlterarCliente", data)
+
+    def create_opportunity(self, data: dict[str, Any]) -> dict[str, Any]:
+        return self._call("crm/oportunidades", "IncluirOportunidade", data)
+
+    def update_opportunity(self, data: dict[str, Any]) -> dict[str, Any]:
+        return self._call("crm/oportunidades", "AlterarOportunidade", data)

@@ -189,7 +189,18 @@ registrando decisões tomadas.
   (permitido pela tabela de agentes) porém auditado; valores dos itens saem
   exatamente como informados (sem valor → "sob consulta"); estrutura
   comercial (condições/validade/dados ToSolve) espelha os PDFs oficiais.
-- [ ] 5. Escrita no CRM
+- [x] 5. Escrita no CRM — (2026-06-13) `crm_agent`: leitura livre (listar
+  clientes/oportunidades, buscar por CNPJ, etapas do funil) + escrita SEM
+  ferramenta direta: `solicitar_cadastro_cliente`/`_atualizacao_cliente`/
+  `_cadastro_oportunidade`/`_atualizacao_oportunidade` enfileiram em
+  `approvals` (`omie_create`/`omie_update`). Executores em `src/executors.py`
+  despacham por entidade (client|opportunity) e gravam o payload congelado;
+  Omie connector ganhou IncluirCliente/AlterarCliente/IncluirOportunidade/
+  AlterarOportunidade. Endpoint `/agents/crm/run` (demanda livre, 202).
+  61 testes. Decisões: agente checa duplicidade por CNPJ antes de propor
+  cadastro; `omie_create`/`omie_update` podem auto-executar via flag (não são
+  deleção), `omie_delete` segue proibido de auto-executar; agente não tem
+  nenhuma ferramenta de exclusão de CRM.
 - [ ] 6. Engenharia
 - [ ] 7. Dashboards + advisor
 

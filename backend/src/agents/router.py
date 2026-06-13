@@ -9,6 +9,7 @@ from __future__ import annotations
 from sqlalchemy.orm import Session, sessionmaker
 
 from src.agents.base import AgentResult, BaseAgent
+from src.agents.crm_agent import CrmAgent
 from src.agents.email_agent import EmailAgent
 from src.agents.monitor_agent import MonitorAgent
 from src.agents.proposal_agent import ProposalAgent
@@ -23,6 +24,7 @@ AGENT_REGISTRY: dict[str, type[BaseAgent]] = {
     "monitor": MonitorAgent,
     "email": EmailAgent,
     "proposal": ProposalAgent,
+    "crm": CrmAgent,
 }
 
 

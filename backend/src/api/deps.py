@@ -54,3 +54,18 @@ def get_proposal_runner() -> ProposalRunner:
         agent.run_generation(proposal_id, trigger="api", run_id=run_id)
 
     return _run
+
+
+CrmRunner = Callable[[str, int], None]
+"""Recebe (demanda livre, run_id) e executa o crm_agent."""
+
+
+def get_crm_runner() -> CrmRunner:
+    def _run(demand: str, run_id: int) -> None:
+        from src.agents.crm_agent import CrmAgent
+        from src.db.session import get_session_factory
+
+        agent = CrmAgent(get_session_factory())
+        agent.run_demand(demand, trigger="api", run_id=run_id)
+
+    return _run

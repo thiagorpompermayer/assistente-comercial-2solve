@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from src import approvals
 from src.api.deps import (
+    get_crm_runner,
     get_db,
     get_email_runner,
     get_graph_client,
@@ -52,10 +53,21 @@ def client(session_factory):
 
         return _run
 
+    def _fake_crm_runner_dep():
+        def _run(demand: str, run_id: int) -> None:
+            with session_factory() as s:
+                run = s.get(AgentRun, run_id)
+                run.status = "done"
+                run.output_json = {"text": f"crm: {demand}"}
+                s.commit()
+
+        return _run
+
     app.dependency_overrides[get_db] = _get_db
     app.dependency_overrides[get_monitor_runner] = _fake_runner_dep
     app.dependency_overrides[get_email_runner] = _fake_runner_dep
     app.dependency_overrides[get_proposal_runner] = _fake_proposal_runner_dep
+    app.dependency_overrides[get_crm_runner] = _fake_crm_runner_dep
     app.dependency_overrides[get_graph_client] = lambda: StubGraph()
     return TestClient(app)
 
@@ -251,6 +263,16 @@ def test_download_de_proposta(client, session_factory, tmp_path):
 
 def test_disparo_manual_da_triagem_retorna_202_e_executa(client):
     response = client.post("/api/v1/agents/email/triage")
+    assert response.status_code == 202
+    run_id = response.json()["run_id"]
+    assert client.get(f"/api/v1/runs/{run_id}").json()["status"] == "done"
+
+
+def test_crm_run_aceita_demanda_e_executa(client):
+    response = client.post(
+        "/api/v1/agents/crm/run",
+        json={"demand": "Cadastre a USINA X com CNPJ 10.821.258/0001-02"},
+    )
     assert response.status_code == 202
     run_id = response.json()["run_id"]
     assert client.get(f"/api/v1/runs/{run_id}").json()["status"] == "done"

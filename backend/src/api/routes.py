@@ -12,9 +12,11 @@ from sqlalchemy.orm import Session
 from src import approvals as approvals_gate
 from src.api import schemas
 from src.api.deps import (
+    CrmRunner,
     EmailRunner,
     MonitorRunner,
     ProposalRunner,
+    get_crm_runner,
     get_db,
     get_email_runner,
     get_graph_client,
@@ -258,6 +260,20 @@ def run_monitor(
     db.add(run)
     db.commit()
     background.add_task(runner, run.id)
+    return schemas.RunAccepted(run_id=run.id, status="queued")
+
+
+@router.post("/agents/crm/run", response_model=schemas.RunAccepted, status_code=202)
+def run_crm(
+    body: schemas.CrmDemandIn,
+    background: BackgroundTasks,
+    db: Session = Depends(get_db),
+    runner: CrmRunner = Depends(get_crm_runner),
+) -> schemas.RunAccepted:
+    run = AgentRun(agent="crm", trigger="api", status="queued")
+    db.add(run)
+    db.commit()
+    background.add_task(runner, body.demand, run.id)
     return schemas.RunAccepted(run_id=run.id, status="queued")
 
 

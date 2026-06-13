@@ -73,9 +73,22 @@ publica no OneDrive (`ONEDRIVE_PROPOSALS_FOLDER`). Download local:
 `GET /api/v1/proposals/{id}/download`. Regra: itens e valores saem exatamente
 como informados — item sem valor vira "sob consulta", nunca preço inventado.
 
+## Escrita no CRM (Etapa 5)
+
+`POST /api/v1/agents/crm/run` recebe uma demanda livre (ex.: "cadastre o
+cliente X com CNPJ ...", "mova a oportunidade 555 para a etapa 3") e dispara o
+`crm_agent`: consulta clientes/oportunidades/etapas no Omie (leitura livre),
+checa duplicidade por CNPJ antes de propor cadastro, e **enfileira** toda
+criação/atualização em `approvals` (`omie_create` / `omie_update`). O agente
+NÃO tem ferramenta de escrita direta nem de exclusão. A escrita só acontece
+quando alguém aprova na fila (`/approvals`) — o executor (`src/executors.py`)
+grava no Omie exatamente o payload congelado. Liberação gradual por
+`action_flags` (deleção nunca auto-executa).
+
 ## Estado atual (Etapa 3)
 
-- Connector Omie **somente leitura** (clientes, oportunidades, tarefas).
+- Connector Omie: leitura livre (clientes, oportunidades, tarefas, etapas) +
+  escrita (criar/atualizar cliente e oportunidade) **só via executores**.
 - Connector Graph: leitura de mail/calendário + rascunhos (Drafts); envio e
   exclusão só pelos executores do portão (`src/executors.py`).
 - `monitor_agent`: varredura de atrasos → tabela `alerts` (cron diário 6h).

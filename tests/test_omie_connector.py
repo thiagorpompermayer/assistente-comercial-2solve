@@ -55,6 +55,39 @@ def test_get_client_consulta_por_codigo():
 
 
 @respx.mock
+def test_find_client_by_document_usa_filtro():
+    route = respx.post(f"{BASE}/geral/clientes/").mock(
+        return_value=httpx.Response(200, json={"total_de_registros": 0, "clientes_cadastro": []})
+    )
+    make_client().find_client_by_document("10.821.258/0001-02")
+    body = json.loads(route.calls[0].request.content)
+    assert body["call"] == "ListarClientes"
+    assert body["param"][0]["clientesFiltro"] == {"cnpj_cpf": "10.821.258/0001-02"}
+
+
+@respx.mock
+def test_create_client_chama_incluircliente():
+    route = respx.post(f"{BASE}/geral/clientes/").mock(
+        return_value=httpx.Response(200, json={"codigo_cliente_omie": 999, "codigo_status": "0"})
+    )
+    data = make_client().create_client({"razao_social": "USINA X", "cnpj_cpf": "00"})
+    assert data["codigo_cliente_omie"] == 999
+    body = json.loads(route.calls[0].request.content)
+    assert body["call"] == "IncluirCliente"
+    assert body["param"] == [{"razao_social": "USINA X", "cnpj_cpf": "00"}]
+
+
+@respx.mock
+def test_update_opportunity_chama_alteraroportunidade():
+    route = respx.post(f"{BASE}/crm/oportunidades/").mock(
+        return_value=httpx.Response(200, json={"nCodOp": 5, "cCodStatus": "0"})
+    )
+    make_client().update_opportunity({"identificacao": {"nCodOp": 5}})
+    body = json.loads(route.calls[0].request.content)
+    assert body["call"] == "AlterarOportunidade"
+
+
+@respx.mock
 def test_retry_em_500_e_sucesso_na_segunda():
     route = respx.post(f"{BASE}/crm/tarefas/")
     route.side_effect = [
