@@ -35,6 +35,42 @@ Uma **aplicação web completa** para o time comercial da 2Solve:
 - **Agentes:** módulos Python especializados (ver seção Agentes), orquestrados
   por um **router em código próprio** — sem n8n, sem Claude Agent SDK.
 
+## Replanejamento de escopo — v2 (2026-06-14)
+
+> A v1 (Etapas 0–7, abaixo) foi construída e está no repo. O dono do produto
+> refinou a visão, centrada no **fluxo real de Propostas** e em integração mais
+> profunda com o Microsoft 365. Detalhe completo em `docs/04-replanejamento-v2.md`.
+> **Status: em arquitetura — implementação pausada para alinhamento com o time.**
+
+Mudanças-chave em relação à v1:
+
+1. **Propostas começam por um formulário de dados** (CNPJ, razão social,
+   contato, telefone, e-mail, nome da oportunidade, detalhes) → exportado para
+   **cadastro automático de cliente + oportunidade no Omie via API**.
+2. **Anexo de documentos do cliente** + **criação automática de pasta padrão
+   (com subpastas) no SharePoint** da 2Solve (nomenclatura a definir).
+3. **Subaba de Tarefas**: criar e acompanhar tarefas do Omie pela aplicação,
+   por dia, cliente e semana.
+4. **Subaba de Propostas enviadas** + histórico resumido.
+5. **A proposta é autorada no Omie** (não mais gerada como PPTX aqui); a app
+   anexa o documento na pasta do SharePoint, **cria as tarefas seguintes no Omie**
+   (proposta enviada, follow-up…) e **gera o e-mail de envio** (editável) disparado
+   via Office 365. → O gerador `pptx_2solve` da v1 vira **opcional/secundário**.
+6. **E-mails por etapa do funil**: tipos prontos (agradecimento de reunião,
+   solicitação de informações, envio de proposta, follow-up…), com nome do
+   cliente + demanda Omie + etapa; texto gerado, **editável**, e botão **Enviar**
+   que dispara **pela conta do próprio usuário**.
+7. **Login pela conta de e-mail (Microsoft Entra ID) desde o início.**
+
+Impactos arquiteturais (ver doc): autenticação **Entra ID já na fundação**
+(não mais JWT-local-primeiro); envio de e-mail passa de **app-only/caixa
+compartilhada → delegado (conta do usuário)**; novo connector **SharePoint**
+(pastas + anexos); modelos de tarefas/anexos/templates de e-mail.
+
+**Engenharia pausada (2026-06-14):** o módulo de Engenharia (`engineering_agent`)
+fica fora do replanejamento — será repensado pelo dono do produto depois. O
+código da v1 permanece no repo, sem evolução agora, e saiu do preview v2.
+
 ## Stack
 
 - Backend: Python 3.12 com type hints obrigatórios, FastAPI, SQLAlchemy, httpx,

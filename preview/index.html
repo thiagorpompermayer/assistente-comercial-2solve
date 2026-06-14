@@ -3,297 +3,361 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Assistente Comercial 2Solve — Preview</title>
+<title>Assistente Comercial 2Solve — Preview v2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: #0A0E1A;
-    --card: #1A2333;
-    --card-2: #1E293B;
-    --cyan: #03E8DC;
-    --blue: #007AFF;
-    --text: #F4F4F4;
-    --muted: #C6C6C6;
-    --dim: #A8A8A8;
-    --high: #DA1E28;
-    --med: #F5A623;
-    --low: #64748B;
-    --green: #10B981;
+    --bg:#0A0E1A; --card:#1A2333; --card-2:#1E293B; --cyan:#03E8DC; --blue:#007AFF;
+    --text:#F4F4F4; --muted:#C6C6C6; --dim:#A8A8A8; --high:#DA1E28; --med:#F5A623;
+    --low:#64748B; --green:#10B981;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: "Work Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg); color: var(--text);
-    display: flex; min-height: 100vh;
-  }
-  /* ----- sidebar ----- */
-  aside {
-    width: 248px; background: #070A12; border-right: 1px solid #1c2740;
-    padding: 24px 0; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
-  }
-  .brand { display: flex; align-items: center; gap: 10px; padding: 0 24px 28px; }
-  .brand .logo {
-    width: 34px; height: 34px; border-radius: 8px;
-    background: linear-gradient(135deg, var(--cyan), var(--blue));
-    display: grid; place-items: center; font-weight: 700; color: #051018;
-  }
-  .brand b { font-size: 15px; letter-spacing: .2px; }
-  .brand span { display: block; font-size: 11px; color: var(--dim); font-weight: 400; }
-  nav a {
-    display: flex; align-items: center; gap: 12px; padding: 11px 24px;
-    color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500;
-    border-left: 3px solid transparent; cursor: pointer;
-  }
-  nav a:hover { background: #0e1424; color: var(--text); }
-  nav a.active { color: var(--cyan); border-left-color: var(--cyan); background: #0e1424; }
-  nav a .ico { width: 18px; text-align: center; }
-  nav a .badge {
-    margin-left: auto; background: var(--high); color: #fff; font-size: 11px;
-    font-weight: 700; border-radius: 10px; padding: 1px 7px;
-  }
-  .sidebar-foot { position: absolute; bottom: 18px; left: 24px; font-size: 11px; color: var(--dim); }
-  /* ----- main ----- */
-  main { flex: 1; padding: 28px 36px; max-width: 1180px; }
-  header.top { display: flex; align-items: baseline; gap: 14px; margin-bottom: 4px; }
-  header.top .kick { color: var(--cyan); font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
-  h1 { font-size: 26px; font-weight: 700; margin-bottom: 22px; }
-  .sub { color: var(--dim); font-size: 13px; margin-left: auto; font-weight: 400; }
-  section.view { display: none; }
-  section.view.active { display: block; animation: fade .25s ease; }
-  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-  /* ----- cards / kpis ----- */
-  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-  .kpi { background: var(--card); border: 1px solid #243149; border-radius: 12px; padding: 18px 20px; }
-  .kpi .label { color: var(--dim); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
-  .kpi .val { font-size: 26px; font-weight: 700; margin-top: 6px; }
-  .kpi .val.cyan { color: var(--cyan); }
-  .card {
-    background: var(--card); border: 1px solid #243149; border-radius: 12px;
-    padding: 22px 24px; margin-bottom: 20px;
-  }
-  .card h2 { font-size: 15px; font-weight: 600; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
-  .card h2::before { content: ""; width: 4px; height: 16px; background: var(--cyan); border-radius: 2px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  /* ----- bars ----- */
-  .bar-row { display: grid; grid-template-columns: 200px 1fr 130px; align-items: center; gap: 14px; margin-bottom: 14px; }
-  .bar-row .name { font-size: 13px; color: var(--muted); }
-  .bar-track { background: #0d1525; border-radius: 6px; height: 26px; overflow: hidden; position: relative; }
-  .bar-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--cyan)); border-radius: 6px; display: flex; align-items: center; }
-  .bar-fill span { font-size: 11px; font-weight: 700; color: #051018; padding-left: 9px; }
-  .bar-row .money { text-align: right; font-size: 13px; font-weight: 600; }
-  /* ----- ops stats ----- */
-  .stat { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #20304a; font-size: 14px; }
-  .stat:last-child { border-bottom: 0; }
-  .stat .v { font-weight: 700; }
-  /* ----- lists / approvals / emails ----- */
-  .item { background: var(--card); border: 1px solid #243149; border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; }
-  .item .row1 { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-  .pill { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: .4px; }
-  .pill.send { background: rgba(0,122,255,.16); color: #5aa9ff; }
-  .pill.delete { background: rgba(218,30,40,.16); color: #ff7884; }
-  .pill.create { background: rgba(3,232,220,.14); color: var(--cyan); }
-  .pill.update { background: rgba(245,166,35,.16); color: var(--med); }
-  .pill.lead { background: rgba(16,185,129,.16); color: #34d399; }
-  .pill.cliente_ativo { background: rgba(0,122,255,.16); color: #5aa9ff; }
-  .pill.fornecedor { background: rgba(148,163,184,.18); color: #b8c2d4; }
-  .pill.irrelevante { background: rgba(100,116,139,.16); color: #94a3b8; }
-  .pill.alta { background: rgba(218,30,40,.16); color: #ff7884; }
-  .pill.media { background: rgba(245,166,35,.16); color: var(--med); }
-  .pill.baixa { background: rgba(100,116,139,.16); color: #94a3b8; }
-  .pill.high { background: rgba(218,30,40,.16); color: #ff7884; }
-  .pill.medium { background: rgba(245,166,35,.16); color: var(--med); }
-  .item .who { font-weight: 600; font-size: 14px; }
-  .item .when { color: var(--dim); font-size: 12px; margin-left: auto; }
-  .item .preview { color: var(--muted); font-size: 13px; white-space: pre-line; line-height: 1.55; background: #0d1525; border-radius: 8px; padding: 12px 14px; margin-top: 8px; }
-  .item .summary { color: var(--muted); font-size: 13px; line-height: 1.5; }
-  .actions { display: flex; gap: 10px; margin-top: 14px; }
-  button { font-family: inherit; font-size: 13px; font-weight: 600; border: 0; border-radius: 8px; padding: 9px 18px; cursor: pointer; }
-  .btn-ok { background: var(--green); color: #04221a; }
-  .btn-no { background: transparent; color: #ff7884; border: 1px solid #5a2730; }
-  .btn-ghost { background: #22304d; color: var(--muted); }
-  .decided { font-size: 13px; font-weight: 600; margin-top: 12px; }
-  .decided.ok { color: var(--green); }
-  .decided.no { color: #ff7884; }
-  .rec { border-left: 3px solid #243149; padding: 4px 0 4px 16px; margin-bottom: 18px; }
-  .rec.alta { border-left-color: var(--high); }
-  .rec.media { border-left-color: var(--med); }
-  .rec h3 { font-size: 14px; font-weight: 600; margin: 4px 0 6px; display: flex; gap: 10px; align-items: center; }
-  .rec p { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 3px 0; }
-  .rec .step { color: var(--cyan); }
-  .empty { color: var(--dim); font-size: 14px; text-align: center; padding: 30px; }
-  .note { background: rgba(3,232,220,.07); border: 1px solid rgba(3,232,220,.25); border-radius: 10px; padding: 12px 16px; font-size: 12.5px; color: var(--muted); margin-bottom: 22px; line-height: 1.5; }
-  .note b { color: var(--cyan); }
-  .mermaid-box { background: #0d1525; border-radius: 8px; padding: 16px; font-family: ui-monospace, monospace; font-size: 12.5px; color: #9fe7e2; white-space: pre; overflow-x: auto; }
-  .tag-ok { color: var(--green); } .tag-bad { color: #ff7884; }
-  table.inst { width: 100%; border-collapse: collapse; font-size: 13px; }
-  table.inst th { text-align: left; color: var(--dim); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid #243149; font-size: 11px; text-transform: uppercase; }
-  table.inst td { padding: 9px 10px; border-bottom: 1px solid #16203200; color: var(--muted); }
-  table.inst tr:nth-child(even) td { background: #141d2e; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"Work Sans",-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); }
+  /* ---------- LOGIN ---------- */
+  #login { position:fixed; inset:0; background:radial-gradient(1200px 600px at 70% -10%, #11203a 0%, var(--bg) 60%); display:grid; place-items:center; z-index:50; }
+  #login .box { width:380px; background:var(--card); border:1px solid #243149; border-radius:16px; padding:38px 34px; text-align:center; }
+  #login .logo { width:52px; height:52px; border-radius:12px; margin:0 auto 18px; background:linear-gradient(135deg,var(--cyan),var(--blue)); display:grid; place-items:center; font-weight:700; font-size:20px; color:#051018; }
+  #login h1 { font-size:20px; margin-bottom:6px; }
+  #login p { color:var(--dim); font-size:13px; margin-bottom:26px; line-height:1.5; }
+  .ms-btn { width:100%; display:flex; align-items:center; justify-content:center; gap:10px; background:#fff; color:#1b1b1b; border:0; border-radius:8px; padding:12px; font-weight:600; font-size:14px; cursor:pointer; }
+  .ms-tile { display:grid; grid-template-columns:1fr 1fr; gap:2px; width:18px; height:18px; }
+  .ms-tile i { display:block; }
+  .ms-tile i:nth-child(1){background:#f25022} .ms-tile i:nth-child(2){background:#7fba00} .ms-tile i:nth-child(3){background:#00a4ef} .ms-tile i:nth-child(4){background:#ffb900}
+  #login .foot { margin-top:18px; font-size:11px; color:var(--dim); }
+  /* ---------- APP ---------- */
+  #app { display:none; }
+  .layout { display:flex; min-height:100vh; }
+  aside { width:248px; background:#070A12; border-right:1px solid #1c2740; padding:24px 0; flex-shrink:0; position:sticky; top:0; height:100vh; }
+  .brand { display:flex; align-items:center; gap:10px; padding:0 24px 24px; }
+  .brand .logo { width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg,var(--cyan),var(--blue)); display:grid; place-items:center; font-weight:700; color:#051018; }
+  .brand b { font-size:15px; } .brand span { display:block; font-size:11px; color:var(--dim); font-weight:400; }
+  nav a { display:flex; align-items:center; gap:12px; padding:11px 24px; color:var(--muted); text-decoration:none; font-size:14px; font-weight:500; border-left:3px solid transparent; cursor:pointer; }
+  nav a:hover { background:#0e1424; color:var(--text); }
+  nav a.active { color:var(--cyan); border-left-color:var(--cyan); background:#0e1424; }
+  nav a .ico { width:18px; text-align:center; }
+  nav a .badge { margin-left:auto; background:var(--high); color:#fff; font-size:11px; font-weight:700; border-radius:10px; padding:1px 7px; }
+  .user-foot { position:absolute; bottom:16px; left:24px; right:24px; font-size:12px; color:var(--muted); border-top:1px solid #1c2740; padding-top:14px; }
+  .user-foot .av { display:inline-grid; place-items:center; width:26px; height:26px; border-radius:50%; background:#22304d; color:var(--cyan); font-weight:700; font-size:12px; margin-right:8px; }
+  .user-foot small { color:var(--dim); display:block; margin-top:2px; }
+  main { flex:1; padding:26px 36px; max-width:1180px; }
+  header.top { display:flex; align-items:baseline; gap:14px; }
+  header.top .kick { color:var(--cyan); font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+  h1.page { font-size:25px; font-weight:700; margin:2px 0 18px; }
+  section.view { display:none; } section.view.active { display:block; animation:fade .25s ease; }
+  @keyframes fade { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+  .note { background:rgba(3,232,220,.07); border:1px solid rgba(3,232,220,.25); border-radius:10px; padding:11px 16px; font-size:12.5px; color:var(--muted); margin-bottom:20px; line-height:1.5; }
+  .note b { color:var(--cyan); }
+  /* tabs */
+  .tabs { display:flex; gap:6px; border-bottom:1px solid #243149; margin-bottom:22px; }
+  .tabs button { background:none; border:0; color:var(--dim); font-family:inherit; font-size:14px; font-weight:600; padding:10px 16px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; }
+  .tabs button.active { color:var(--cyan); border-bottom-color:var(--cyan); }
+  .subview { display:none; } .subview.active { display:block; }
+  /* kpis / cards */
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .kpi { background:var(--card); border:1px solid #243149; border-radius:12px; padding:18px 20px; }
+  .kpi .label { color:var(--dim); font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
+  .kpi .val { font-size:25px; font-weight:700; margin-top:6px; } .kpi .val.cyan { color:var(--cyan); }
+  .card { background:var(--card); border:1px solid #243149; border-radius:12px; padding:22px 24px; margin-bottom:20px; }
+  .card h2 { font-size:15px; font-weight:600; margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+  .card h2::before { content:""; width:4px; height:16px; background:var(--cyan); border-radius:2px; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .bar-row { display:grid; grid-template-columns:180px 1fr 130px; align-items:center; gap:14px; margin-bottom:13px; }
+  .bar-row .name { font-size:13px; color:var(--muted); }
+  .bar-track { background:#0d1525; border-radius:6px; height:24px; overflow:hidden; }
+  .bar-fill { height:100%; background:linear-gradient(90deg,var(--blue),var(--cyan)); border-radius:6px; display:flex; align-items:center; }
+  .bar-fill span { font-size:11px; font-weight:700; color:#051018; padding-left:9px; }
+  .bar-row .money { text-align:right; font-size:13px; font-weight:600; }
+  .stat { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid #20304a; font-size:14px; }
+  .stat:last-child { border-bottom:0; } .stat .v { font-weight:700; }
+  /* forms */
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px 20px; }
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .field.full { grid-column:1 / -1; }
+  .field label { font-size:12px; color:var(--dim); text-transform:uppercase; letter-spacing:.4px; }
+  .field label .req { color:var(--cyan); }
+  .field input, .field textarea, .field select { background:#0d1525; border:1px solid #243149; border-radius:8px; padding:11px 13px; color:var(--text); font-family:inherit; font-size:14px; }
+  .field textarea { resize:vertical; min-height:86px; line-height:1.5; }
+  .field input::placeholder, .field textarea::placeholder { color:#5b6b86; }
+  .hint { font-size:12px; color:var(--dim); margin-top:4px; }
+  /* dropzone */
+  .drop { border:1.5px dashed #2c3c5a; border-radius:10px; padding:20px; text-align:center; color:var(--dim); font-size:13px; background:#0d1525; }
+  .drop b { color:var(--muted); }
+  .file { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--muted); padding:8px 12px; background:#0d1525; border-radius:8px; margin-top:8px; }
+  .file .x { margin-left:auto; color:var(--dim); }
+  .sp-path { font-family:ui-monospace,monospace; font-size:12.5px; color:#9fe7e2; background:#0d1525; border-radius:8px; padding:12px 14px; line-height:1.7; }
+  /* buttons */
+  button.act { font-family:inherit; font-size:13px; font-weight:600; border:0; border-radius:8px; padding:10px 18px; cursor:pointer; }
+  .btn-primary { background:linear-gradient(135deg,var(--cyan),var(--blue)); color:#051018; }
+  .btn-ok { background:var(--green); color:#04221a; }
+  .btn-no { background:transparent; color:#ff7884; border:1px solid #5a2730; }
+  .btn-ghost { background:#22304d; color:var(--muted); }
+  .btnbar { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+  /* pills */
+  .pill { font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:.4px; }
+  .pill.send,.pill.cliente_ativo { background:rgba(0,122,255,.16); color:#5aa9ff; }
+  .pill.delete { background:rgba(218,30,40,.16); color:#ff7884; }
+  .pill.create,.pill.enviada { background:rgba(3,232,220,.14); color:var(--cyan); }
+  .pill.update,.pill.media,.pill.followup { background:rgba(245,166,35,.16); color:var(--med); }
+  .pill.lead { background:rgba(16,185,129,.16); color:#34d399; }
+  .pill.fornecedor,.pill.baixa,.pill.rascunho { background:rgba(148,163,184,.18); color:#b8c2d4; }
+  .pill.alta,.pill.high { background:rgba(218,30,40,.16); color:#ff7884; }
+  /* items */
+  .item { background:var(--card); border:1px solid #243149; border-radius:12px; padding:18px 20px; margin-bottom:14px; }
+  .item .row1 { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .item .who { font-weight:600; font-size:14px; } .item .when { color:var(--dim); font-size:12px; margin-left:auto; }
+  .item .preview { color:var(--muted); font-size:13px; white-space:pre-line; line-height:1.55; background:#0d1525; border-radius:8px; padding:12px 14px; margin-top:8px; }
+  .item .summary { color:var(--muted); font-size:13px; line-height:1.5; }
+  .actions { display:flex; gap:10px; margin-top:14px; }
+  .timeline { list-style:none; margin-top:8px; }
+  .timeline li { position:relative; padding:5px 0 5px 22px; font-size:13px; color:var(--muted); }
+  .timeline li::before { content:""; position:absolute; left:4px; top:11px; width:8px; height:8px; border-radius:50%; background:var(--cyan); }
+  .timeline li.done::before { background:var(--green); } .timeline li.future::before { background:#3a4a66; }
+  .day-h { font-size:12px; color:var(--cyan); font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin:18px 0 10px; }
+  .task { display:flex; align-items:center; gap:12px; padding:11px 14px; background:var(--card); border:1px solid #243149; border-radius:10px; margin-bottom:8px; font-size:14px; }
+  .task .chk { width:16px; height:16px; border-radius:4px; border:1.5px solid #3a4a66; flex-shrink:0; }
+  .task .cli { color:var(--dim); font-size:12px; margin-left:auto; }
+  .rec { border-left:3px solid #243149; padding:4px 0 4px 16px; margin-bottom:16px; }
+  .rec.alta { border-left-color:var(--high); } .rec.media { border-left-color:var(--med); }
+  .rec h3 { font-size:14px; font-weight:600; margin:4px 0 6px; display:flex; gap:10px; align-items:center; }
+  .rec p { font-size:13px; color:var(--muted); line-height:1.5; margin:3px 0; } .rec .step { color:var(--cyan); }
+  .seg { display:inline-flex; background:#0d1525; border:1px solid #243149; border-radius:8px; padding:3px; gap:3px; }
+  .seg button { background:none; border:0; color:var(--dim); font-family:inherit; font-size:13px; font-weight:600; padding:6px 14px; border-radius:6px; cursor:pointer; }
+  .seg button.active { background:#22304d; color:var(--cyan); }
 </style>
 </head>
 <body>
-<aside>
-  <div class="brand">
+
+<!-- ============ LOGIN ============ -->
+<div id="login">
+  <div class="box">
     <div class="logo">2S</div>
-    <div><b>2Solve</b><span>Assistente Comercial</span></div>
+    <h1>Assistente Comercial 2Solve</h1>
+    <p>Entre com sua conta corporativa Microsoft.<br/>O login define quem você é no sistema e a conta que envia os e-mails.</p>
+    <button class="ms-btn" onclick="entrar()">
+      <span class="ms-tile"><i></i><i></i><i></i><i></i></span>
+      Entrar com Microsoft
+    </button>
+    <div class="foot">Acesso restrito a contas @2solve.com</div>
   </div>
-  <nav id="nav">
-    <a data-view="dashboard" class="active"><span class="ico">▤</span> Dashboard</a>
-    <a data-view="approvals"><span class="ico">✓</span> Aprovações <span class="badge" id="apprBadge">3</span></a>
-    <a data-view="emails"><span class="ico">✉</span> Emails triados</a>
-    <a data-view="proposals"><span class="ico">▦</span> Propostas</a>
-    <a data-view="engineering"><span class="ico">⚙</span> Engenharia</a>
-    <a data-view="advisor"><span class="ico">◆</span> Advisor</a>
-  </nav>
-  <div class="sidebar-foot">Preview · dados de demonstração</div>
-</aside>
+</div>
 
-<main>
-  <div class="note">
-    <b>Preview visual</b> — esta é uma simulação navegável das telas, na identidade da 2Solve,
-    com dados de exemplo no formato exato que a API REST já devolve. Não é o app React de produção;
-    serve para visualizar o resultado e guiar o desenvolvimento do frontend.
-  </div>
-
-  <!-- DASHBOARD -->
-  <section class="view active" id="dashboard">
-    <header class="top"><span class="kick">Comercial + Operação</span></header>
-    <h1>Dashboard</h1>
-    <div class="kpis" id="kpis"></div>
-    <div class="grid-2">
-      <div class="card"><h2>Pipeline por estágio</h2><div id="pipeline"></div></div>
-      <div class="card"><h2>Operação do assistente</h2><div id="ops"></div></div>
+<!-- ============ APP ============ -->
+<div id="app"><div class="layout">
+  <aside>
+    <div class="brand"><div class="logo">2S</div><div><b>2Solve</b><span>Assistente Comercial</span></div></div>
+    <nav id="nav">
+      <a data-view="dashboard" class="active"><span class="ico">▤</span> Dashboard</a>
+      <a data-view="propostas"><span class="ico">▦</span> Propostas</a>
+      <a data-view="emails"><span class="ico">✉</span> E-mails</a>
+      <a data-view="aprovacoes"><span class="ico">✓</span> Aprovações <span class="badge">3</span></a>
+      <a data-view="advisor"><span class="ico">◆</span> Advisor</a>
+    </nav>
+    <div class="user-foot">
+      <span class="av">TP</span>Thiago Pompermayer
+      <small>thiago.pompermayer@2solve.com</small>
     </div>
-  </section>
+  </aside>
 
-  <!-- APPROVALS -->
-  <section class="view" id="approvals">
-    <header class="top"><span class="kick">Portão de aprovação humana</span></header>
-    <h1>Fila de aprovações</h1>
-    <div id="apprList"></div>
-  </section>
+  <main>
+    <div class="note">
+      <b>Preview visual v2</b> — telas da visão refinada (login Microsoft, Propostas com formulário→Omie,
+      anexos→SharePoint, tarefas e e-mails por etapa). Dados fictícios, no formato que a API vai expor.
+      Em arquitetura — ver <b>docs/04-replanejamento-v2.md</b>.
+    </div>
 
-  <!-- EMAILS -->
-  <section class="view" id="emails">
-    <header class="top"><span class="kick">email_agent · triagem</span></header>
-    <h1>Emails triados</h1>
-    <div id="emailList"></div>
-  </section>
+    <!-- DASHBOARD -->
+    <section class="view active" id="dashboard">
+      <header class="top"><span class="kick">Comercial + Operação</span></header>
+      <h1 class="page">Dashboard</h1>
+      <div class="kpis" id="kpis"></div>
+      <div class="grid-2">
+        <div class="card"><h2>Pipeline por estágio</h2><div id="pipeline"></div></div>
+        <div class="card"><h2>Operação do assistente</h2><div id="ops"></div></div>
+      </div>
+    </section>
 
-  <!-- PROPOSALS -->
-  <section class="view" id="proposals">
-    <header class="top"><span class="kick">proposal_agent</span></header>
-    <h1>Propostas</h1>
-    <div id="propList"></div>
-  </section>
+    <!-- PROPOSTAS -->
+    <section class="view" id="propostas">
+      <header class="top"><span class="kick">Fluxo comercial ponta a ponta</span></header>
+      <h1 class="page">Propostas</h1>
+      <div class="tabs">
+        <button class="active" data-tab="nova">Nova proposta</button>
+        <button data-tab="tarefas">Tarefas</button>
+        <button data-tab="enviadas">Enviadas &amp; histórico</button>
+      </div>
 
-  <!-- ENGINEERING -->
-  <section class="view" id="engineering">
-    <header class="top"><span class="kick">engineering_agent · ISA-5.1</span></header>
-    <h1>Engenharia</h1>
-    <div id="engContent"></div>
-  </section>
+      <!-- Nova proposta -->
+      <div class="subview active" id="nova">
+        <div class="card">
+          <h2>Dados do cliente e da oportunidade</h2>
+          <div class="form-grid">
+            <div class="field"><label>CNPJ <span class="req">*</span></label><input placeholder="00.000.000/0001-00" value="21.045.882/0001-77"></div>
+            <div class="field"><label>Razão social <span class="req">*</span></label><input value="Petroquímica Vale do Aço S.A."></div>
+            <div class="field"><label>Nome do contato</label><input value="Eng. Marina Salles"></div>
+            <div class="field"><label>Telefone</label><input value="(31) 98812-4490"></div>
+            <div class="field"><label>E-mail</label><input value="marina.salles@pqva.com.br"></div>
+            <div class="field"><label>Nome da oportunidade <span class="req">*</span></label><input value="Adequação de instrumentação — Área 300"></div>
+            <div class="field full"><label>Detalhes / necessidade</label><textarea>Revisão das malhas de medição fiscal da Área 300, troca de transmissores e adequação à NR-13. Cliente pediu visita técnica para levantamento.</textarea></div>
+          </div>
+          <div class="hint">Estes campos serão exportados para o Omie e preencherão automaticamente o cadastro de <b>cliente</b> + <b>oportunidade</b> via API (atrás do portão de aprovação).</div>
+          <div class="btnbar"><button class="act btn-primary">Exportar para o Omie →</button></div>
+        </div>
 
-  <!-- ADVISOR -->
-  <section class="view" id="advisor">
-    <header class="top"><span class="kick">advisor_agent · raciocínio pesado</span></header>
-    <h1>Análise do pipeline</h1>
-    <div id="advContent"></div>
-  </section>
-</main>
+        <div class="card">
+          <h2>Documentos do cliente</h2>
+          <div class="drop"><b>Arraste arquivos aqui</b> ou clique para anexar (PDF, DWG, planilhas…)</div>
+          <div class="file">📄 RFQ_PetroquimicaValeAco_Area300.pdf <span class="x">✕</span></div>
+          <div class="file">📐 P&amp;ID_existente_rev2.pdf <span class="x">✕</span></div>
+          <div class="hint" style="margin-top:14px">Ao salvar, será criada a pasta padrão no <b>SharePoint da 2Solve</b> e os documentos enviados para a subpasta de origem:</div>
+          <div class="sp-path">📁 /Comercial/Clientes/Petroquímica Vale do Aço S.A./
+     └ 2026-xxxx — Adequação de instrumentação — Área 300/
+          ├ 01 — Documentos do Cliente/   ← anexos vão aqui
+          ├ 02 — Proposta/
+          ├ 03 — Contrato/
+          └ 04 — Execução/</div>
+          <div class="hint">Nomenclatura e subpastas são um <b>ponto a alinhar</b> com o time (ver doc).</div>
+        </div>
+      </div>
+
+      <!-- Tarefas -->
+      <div class="subview" id="tarefas">
+        <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px">
+          <div class="seg" id="taskSeg">
+            <button class="active" data-p="dia">Dia</button>
+            <button data-p="semana">Semana</button>
+            <button data-p="cliente">Por cliente</button>
+          </div>
+          <button class="act btn-primary" style="margin-left:auto">+ Nova tarefa no Omie</button>
+        </div>
+        <div id="taskList"></div>
+      </div>
+
+      <!-- Enviadas -->
+      <div class="subview" id="enviadas">
+        <div id="sentList"></div>
+      </div>
+    </section>
+
+    <!-- E-MAILS -->
+    <section class="view" id="emails">
+      <header class="top"><span class="kick">email_agent · por etapa do funil</span></header>
+      <h1 class="page">E-mails</h1>
+      <div class="card">
+        <h2>Compor e-mail</h2>
+        <div class="form-grid">
+          <div class="field"><label>Tipo de e-mail</label>
+            <select id="mailType" onchange="genMail()">
+              <option value="agradecimento_reuniao">Agradecimento de reunião</option>
+              <option value="solicitar_info">Solicitação de mais informações</option>
+              <option value="envio_proposta" selected>Envio de proposta</option>
+              <option value="follow_up">Follow-up</option>
+            </select>
+          </div>
+          <div class="field"><label>Cliente / contato</label><input id="mailCli" value="Marina Salles — Petroquímica Vale do Aço" oninput="genMail()"></div>
+          <div class="field"><label>Demanda no Omie</label><input id="mailDem" value="Oportunidade 2026-0142 — Adequação Área 300"></div>
+          <div class="field"><label>Etapa</label>
+            <select id="mailEtapa"><option>Proposta enviada</option><option>Qualificação</option><option>Negociação</option></select>
+          </div>
+        </div>
+        <div class="field full" style="margin-top:16px"><label>Assunto</label><input id="mailSubj"></div>
+        <div class="field full" style="margin-top:14px"><label>Texto (gerado — edite à vontade)</label><textarea id="mailBody" style="min-height:200px"></textarea></div>
+        <div class="hint">Enviando como <b>thiago.pompermayer@2solve.com</b> (sua conta) via Office 365. O envio passa pelo portão de aprovação.</div>
+        <div class="btnbar">
+          <button class="act btn-ghost" onclick="genMail()">↻ Regerar texto</button>
+          <button class="act btn-primary" onclick="alert('(preview) O envio entraria na fila de aprovação e depois sairia pela sua conta.')">Enviar →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- APROVAÇÕES -->
+    <section class="view" id="aprovacoes">
+      <header class="top"><span class="kick">Portão de aprovação humana</span></header>
+      <h1 class="page">Fila de aprovações</h1>
+      <div id="apprList"></div>
+    </section>
+
+    <!-- ADVISOR -->
+    <section class="view" id="advisor">
+      <header class="top"><span class="kick">advisor_agent · raciocínio pesado</span></header>
+      <h1 class="page">Análise do pipeline</h1>
+      <div id="advContent"></div>
+    </section>
+  </main>
+</div></div>
 
 <script>
-/* ====== dados de demonstração (mesmo shape da API REST v1) ====== */
-const brl = v => "R$ " + v.toLocaleString("pt-BR", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const brl = v => "R$ " + v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+function entrar(){ document.getElementById("login").style.display="none"; document.getElementById("app").style.display="block"; }
 
-const pipeline = {
-  estagios: [
-    { etapa: "Proposta enviada", quantidade: 5, valor_total: 612000 },
-    { etapa: "Negociação",       quantidade: 3, valor_total: 388000 },
-    { etapa: "Qualificação",     quantidade: 7, valor_total: 240000 },
-    { etapa: "Primeiro contato", quantidade: 9, valor_total: 156000 },
+/* ---- dados demo ---- */
+const pipeline = { estagios:[
+  {etapa:"Proposta enviada",quantidade:5,valor_total:612000},
+  {etapa:"Negociação",quantidade:3,valor_total:388000},
+  {etapa:"Qualificação",quantidade:7,valor_total:240000},
+  {etapa:"Primeiro contato",quantidade:9,valor_total:156000},
+], total_oportunidades:24, valor_total:1396000, ticket_medio:58166.67 };
+const ops = { emails_triados_periodo:142, aprovacoes:{fila_pendente:3,executadas:27,rejeitadas:4}, alertas_abertos:5, propostas_por_status:{generated:11,draft:2}, tarefas_semana:14 };
+
+const tarefas = {
+  dia:[
+    {t:"Ligar para Marina (PQVA) — agendar visita Área 300", cli:"Petroquímica Vale do Aço", tipo:"follow_up"},
+    {t:"Enviar proposta 2026-0142", cli:"Petroquímica Vale do Aço", tipo:"envio_proposta"},
+    {t:"Confirmar recebimento — MRS Logística", cli:"MRS Logística", tipo:"follow_up"},
   ],
-  total_oportunidades: 24, valor_total: 1396000, ticket_medio: 58166.67,
-  sincronizado_em: "2026-06-13T05:00:00Z",
-};
-const ops = {
-  emails_triados_periodo: 142,
-  emails_por_classificacao: { lead: 18, cliente_ativo: 39, fornecedor: 51, interno: 22, irrelevante: 12 },
-  aprovacoes: { fila_pendente: 3, executadas: 27, rejeitadas: 4, falhas: 0 },
-  alertas_abertos: 5,
-  propostas_por_status: { generated: 11, draft: 2 },
-};
-let approvals = [
-  { id: 41, action_type: "email_send", status: "pending", requested_at: "há 12 min",
-    preview_text: "Enviar email para joao.medeiros@usinacarnauba.com.br\nAssunto: RE: Adequação de instrumentação — Área 300\n\nAgradece o contato, confirma disponibilidade técnica e propõe visita para levantamento na próxima semana." },
-  { id: 40, action_type: "omie_create", status: "pending", requested_at: "há 38 min",
-    preview_text: "Cadastrar cliente no Omie\nRazão social: Petroquímica Vale do Aço S.A.\nCNPJ/CPF: 21.045.882/0001-77\nE-mail: compras@pqva.com.br\nLocal: Timóteo/MG" },
-  { id: 39, action_type: "email_delete", status: "pending", requested_at: "há 1 h",
-    preview_text: "Excluir email 0192...a3 (mover para Itens Excluídos)\nMotivo: newsletter de marketing recorrente, sem ação comercial." },
-];
-const emails = [
-  { id: 88, classification: "lead", sender: "joao.medeiros@usinacarnauba.com.br", subject: "Adequação de instrumentação — Área 300",
-    summary: "Lead pedindo orçamento para adequação das malhas de medição da Área 300. Tem potencial alto; responder e agendar visita.", draft: true },
-  { id: 87, classification: "cliente_ativo", sender: "rangel@mrs.com.br", subject: "RE: Proposta 2002104 — revisão de escopo",
-    summary: "Cliente ativo pedindo revisão de escopo da proposta enviada. Encaminhar para engenharia avaliar antes de responder.", draft: true },
-  { id: 86, classification: "fornecedor", sender: "vendas@sensorfast.com", subject: "Tabela de preços transmissores 2026",
-    summary: "Fornecedor enviando tabela de preços. Sem ação comercial; arquivar para consulta da engenharia.", draft: false },
-  { id: 85, classification: "irrelevante", sender: "news@automacaohoje.com", subject: "As 10 tendências de IIoT para 2026",
-    summary: "Newsletter de marketing. Sem ação.", draft: false },
-];
-const proposals = [
-  { id: 12, title: "Modernização da medição fiscal — Projeto Carnaúba", status: "generated", cliente: "PetroReconcavo", itens: 3, valor: 612000, onedrive: true, created: "13/06/2026" },
-  { id: 11, title: "Adequação de instrumentação — Planta MRS", status: "generated", cliente: "MRS Logística", itens: 8, valor: 388000, onedrive: true, created: "11/06/2026" },
-  { id: 10, title: "Estudo preliminar — Biometano RJ", status: "draft", cliente: "CIBiogás", itens: 0, valor: 0, onedrive: false, created: "10/06/2026" },
-];
-const instruments = [
-  { tag: "FT-301", servico: "Vazão de óleo bruto", interpretacao: "Vazão · Transmissão (malha 301)", ok: true },
-  { tag: "PIC-305", servico: "Controle de pressão do separador", interpretacao: "Pressão · Indicação · Controle (malha 305)", ok: true },
-  { tag: "LSH-310", servico: "Nível alto do tanque TQ-01", interpretacao: "Nível · Chave · Alto (malha 310)", ok: true },
-  { tag: "PDT-302", servico: "Pressão diferencial do filtro", interpretacao: "Pressão · Diferencial · Transmissão (malha 302)", ok: true },
-];
-const flowchart = `flowchart LR
-    TQ01(["Tanque TQ-01"]) -->|óleo bruto| P01["Bomba P-01"]
-    P01 -->|vazão| FT301(("FT-301"))
-    FT301 --> SEP["Separador V-01"]
-    SEP -->|pressão| PIC305(("PIC-305"))`;
-const advisor = {
-  created: "13/06/2026 05:12",
-  summary: "O pipeline está concentrado em \"Proposta enviada\" (R$ 612 mil em 5 oportunidades), com sinais de estagnação: 3 propostas acima de R$ 100 mil sem movimento há 14+ dias. A fila de aprovações está saudável (3 itens) e a triagem cobre bem a inbox. O gargalo é follow-up de propostas de alto valor, não capacidade operacional.",
-  recomendacoes: [
-    { prioridade: "alta", titulo: "Reativar as 3 propostas de alto valor estagnadas",
-      porque: "R$ 388 mil parados há 14+ dias em \"Proposta enviada\"; risco de esfriamento.",
-      proximo_passo: "Disparar follow-up estruturado esta semana, começando por PetroReconcavo (R$ 612k)." },
-    { prioridade: "alta", titulo: "Acelerar visita técnica do lead Usina Carnaúba",
-      porque: "Lead quente pediu adequação da Área 300; rascunho de resposta já aguarda aprovação.",
-      proximo_passo: "Aprovar o envio e agendar o levantamento de campo nos próximos 5 dias." },
-    { prioridade: "media", titulo: "Avançar qualificação acumulada",
-      porque: "7 oportunidades em \"Qualificação\" (R$ 240k) — boa base, mas parada.",
-      proximo_passo: "Priorizar as 3 de maior ticket para passar a proposta na próxima quinzena." },
+  semana:[
+    {dia:"Seg 16/06", its:[{t:"Visita técnica Área 300", cli:"PQVA", tipo:"follow_up"}]},
+    {dia:"Qua 18/06", its:[{t:"Follow-up proposta 2002104", cli:"MRS Logística", tipo:"follow_up"},{t:"Reunião de escopo", cli:"CIBiogás", tipo:"follow_up"}]},
+    {dia:"Sex 20/06", its:[{t:"Enviar revisão de proposta", cli:"MRS Logística", tipo:"envio_proposta"}]},
+  ],
+  cliente:[
+    {dia:"Petroquímica Vale do Aço", its:[{t:"Agendar visita Área 300", cli:"Op. 2026-0142", tipo:"follow_up"},{t:"Enviar proposta", cli:"Op. 2026-0142", tipo:"envio_proposta"}]},
+    {dia:"MRS Logística", its:[{t:"Follow-up proposta 2002104", cli:"Op. 2002104", tipo:"follow_up"}]},
   ],
 };
+const sent = [
+  { cliente:"PetroReconcavo", titulo:"Modernização da medição fiscal — Carnaúba", valor:612000, status:"enviada", quando:"13/06/2026",
+    hist:[{t:"Cliente e oportunidade cadastrados no Omie", s:"done"},{t:"Pasta criada no SharePoint + RFQ anexada", s:"done"},{t:"Proposta autorada no Omie e anexada", s:"done"},{t:"E-mail de envio disparado (sua conta)", s:"done"},{t:"Follow-up agendado para 20/06", s:"future"}] },
+  { cliente:"MRS Logística", titulo:"Adequação de instrumentação — Planta MRS", valor:388000, status:"followup", quando:"11/06/2026",
+    hist:[{t:"Proposta enviada", s:"done"},{t:"Follow-up D+3 enviado", s:"done"},{t:"Aguardando retorno — follow-up D+7 em 18/06", s:"future"}] },
+];
+const approvals = [
+  {tipo:["send","Enviar e-mail (sua conta)"], who:"#41", when:"há 12 min", preview:"Para: marina.salles@pqva.com.br\nAssunto: Proposta — Adequação de instrumentação Área 300\n\nEnvio de proposta referente à oportunidade 2026-0142, com link da pasta no SharePoint."},
+  {tipo:["create","Cadastrar cliente + oportunidade no Omie"], who:"#40", when:"há 38 min", preview:"Cliente: Petroquímica Vale do Aço S.A. (CNPJ 21.045.882/0001-77)\nOportunidade: Adequação de instrumentação — Área 300\nContato: Marina Salles · (31) 98812-4490"},
+  {tipo:["update","Criar pasta no SharePoint + anexar documentos"], who:"#39", when:"há 1 h", preview:"/Comercial/Clientes/Petroquímica Vale do Aço S.A./2026-0142 — Adequação Área 300/\n+ 01 — Documentos do Cliente/ (2 arquivos)"},
+];
+const advisor = { created:"14/06/2026 05:12",
+  summary:"Pipeline concentrado em \"Proposta enviada\" (R$ 612 mil). 3 propostas de alto valor sem movimento há 14+ dias; o gargalo é follow-up, não capacidade. 14 tarefas para esta semana já encadeadas no Omie.",
+  recs:[
+    {p:"alta",t:"Reativar as 3 propostas estagnadas",porque:"R$ 388 mil parados há 14+ dias.",passo:"Disparar follow-up esta semana, começando por PetroReconcavo."},
+    {p:"alta",t:"Acelerar visita técnica PQVA",porque:"Lead quente; cadastro e pasta já prontos, e-mail aguardando aprovação.",passo:"Aprovar envio e agendar levantamento em até 5 dias."},
+    {p:"media",t:"Avançar qualificação acumulada",porque:"7 oportunidades (R$ 240k) paradas em Qualificação.",passo:"Priorizar as 3 de maior ticket para proposta na quinzena."},
+  ] };
 
-/* ====== render ====== */
-const el = (h) => { const t = document.createElement("template"); t.innerHTML = h.trim(); return t.content.firstChild; };
+/* ---- templates de e-mail ---- */
+const mailTpl = {
+  agradecimento_reuniao:(c)=>({s:"Obrigado pela reunião", b:`Prezado(a) ${c.split("—")[0].trim()},\n\nAgradecemos a reunião de hoje e o tempo dedicado a apresentar a demanda. Foi muito produtivo entender o contexto da operação.\n\nVamos preparar os próximos passos e retornamos em breve.\n\nAtenciosamente,\nThiago Pompermayer — 2Solve`}),
+  solicitar_info:(c)=>({s:"Algumas informações para avançarmos", b:`Prezado(a) ${c.split("—")[0].trim()},\n\nPara prepararmos a melhor proposta, precisaríamos de alguns dados adicionais:\n\n• P&ID atualizado da área;\n• Lista de instrumentos existentes;\n• Condições de processo (pressão, temperatura, fluido).\n\nFicamos no aguardo. Qualquer dúvida, estou à disposição.\n\nAtenciosamente,\nThiago Pompermayer — 2Solve`}),
+  envio_proposta:(c)=>({s:"Proposta — Adequação de instrumentação Área 300", b:`Prezado(a) ${c.split("—")[0].trim()},\n\nÉ com satisfação que encaminhamos nossa proposta técnico-comercial referente à demanda discutida. O documento detalha escopo, condições e prazos.\n\nA proposta também está disponível na pasta compartilhada do projeto. Ficamos à disposição para esclarecimentos e seguimos no aguardo do seu retorno.\n\nAtenciosamente,\nThiago Pompermayer — 2Solve`}),
+  follow_up:(c)=>({s:"Acompanhamento da proposta enviada", b:`Prezado(a) ${c.split("—")[0].trim()},\n\nEsperamos que esteja bem. Gostaríamos de saber se teve a oportunidade de avaliar a proposta que enviamos e se há alguma dúvida que possamos esclarecer.\n\nSeguimos à disposição para ajustar o que for necessário.\n\nAtenciosamente,\nThiago Pompermayer — 2Solve`}),
+};
+function genMail(){ const tpl=mailTpl[document.getElementById("mailType").value](document.getElementById("mailCli").value||"cliente");
+  document.getElementById("mailSubj").value=tpl.s; document.getElementById("mailBody").value=tpl.b; }
 
-function renderDashboard() {
-  document.getElementById("kpis").innerHTML = `
+/* ---- render ---- */
+function renderDashboard(){
+  document.getElementById("kpis").innerHTML=`
     <div class="kpi"><div class="label">Valor em pipeline</div><div class="val cyan">${brl(pipeline.valor_total)}</div></div>
     <div class="kpi"><div class="label">Oportunidades</div><div class="val">${pipeline.total_oportunidades}</div></div>
-    <div class="kpi"><div class="label">Ticket médio</div><div class="val">${brl(pipeline.ticket_medio)}</div></div>
+    <div class="kpi"><div class="label">Tarefas na semana</div><div class="val">${ops.tarefas_semana}</div></div>
     <div class="kpi"><div class="label">Aguardando aprovação</div><div class="val" style="color:var(--med)">${ops.aprovacoes.fila_pendente}</div></div>`;
-
-  const max = Math.max(...pipeline.estagios.map(e => e.valor_total));
-  document.getElementById("pipeline").innerHTML = pipeline.estagios.map(e => `
-    <div class="bar-row">
-      <div class="name">${e.etapa}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(12, e.valor_total/max*100)}%"><span>${e.quantidade} op.</span></div></div>
-      <div class="money">${brl(e.valor_total)}</div>
-    </div>`).join("");
-
-  const a = ops.aprovacoes;
-  document.getElementById("ops").innerHTML = `
+  const max=Math.max(...pipeline.estagios.map(e=>e.valor_total));
+  document.getElementById("pipeline").innerHTML=pipeline.estagios.map(e=>`
+    <div class="bar-row"><div class="name">${e.etapa}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${Math.max(12,e.valor_total/max*100)}%"><span>${e.quantidade} op.</span></div></div>
+    <div class="money">${brl(e.valor_total)}</div></div>`).join("");
+  const a=ops.aprovacoes;
+  document.getElementById("ops").innerHTML=`
     <div class="stat"><span>Emails triados (30 dias)</span><span class="v">${ops.emails_triados_periodo}</span></div>
     <div class="stat"><span>Fila de aprovações</span><span class="v" style="color:var(--med)">${a.fila_pendente}</span></div>
     <div class="stat"><span>Ações executadas</span><span class="v" style="color:var(--green)">${a.executadas}</span></div>
@@ -301,81 +365,49 @@ function renderDashboard() {
     <div class="stat"><span>Alertas abertos</span><span class="v">${ops.alertas_abertos}</span></div>
     <div class="stat"><span>Propostas geradas</span><span class="v">${ops.propostas_por_status.generated}</span></div>`;
 }
-
-function renderApprovals() {
-  const list = document.getElementById("apprList");
-  const pend = approvals.filter(a => a.status === "pending");
-  document.getElementById("apprBadge").textContent = pend.length || "";
-  document.getElementById("apprBadge").style.display = pend.length ? "" : "none";
-  if (!approvals.length) { list.innerHTML = `<div class="empty">Nenhuma ação na fila.</div>`; return; }
-  const labels = { email_send: ["send","Enviar email"], email_delete: ["delete","Excluir email"], omie_create: ["create","Cadastrar no Omie"], omie_update: ["update","Atualizar no Omie"] };
-  list.innerHTML = approvals.map(a => {
-    const [cls, lbl] = labels[a.action_type] || ["create", a.action_type];
-    let foot = `<div class="actions"><button class="btn-ok" onclick="decide(${a.id},'approved')">Aprovar</button><button class="btn-no" onclick="decide(${a.id},'rejected')">Rejeitar</button></div>`;
-    if (a.status === "approved") foot = `<div class="decided ok">✓ Aprovado e executado · por você</div>`;
-    if (a.status === "rejected") foot = `<div class="decided no">✕ Rejeitado · por você</div>`;
-    return `<div class="item">
-      <div class="row1"><span class="pill ${cls}">${lbl}</span><span class="who">#${a.id}</span><span class="when">${a.requested_at}</span></div>
-      <div class="preview">${a.preview_text}</div>${foot}</div>`;
-  }).join("");
+function renderTasks(p){
+  const box=document.getElementById("taskList");
+  const pill={follow_up:["followup","follow-up"],envio_proposta:["enviada","envio"]};
+  const taskHtml=it=>`<div class="task"><span class="chk"></span><span>${it.t}</span><span class="pill ${pill[it.tipo][0]}">${pill[it.tipo][1]}</span><span class="cli">${it.cli}</span></div>`;
+  if(p==="dia"){ box.innerHTML=`<div class="day-h">Hoje · 14/06</div>`+tarefas.dia.map(taskHtml).join(""); }
+  else { box.innerHTML=tarefas[p].map(g=>`<div class="day-h">${g.dia}</div>`+g.its.map(taskHtml).join("")).join(""); }
 }
-function decide(id, status) { const a = approvals.find(x => x.id === id); if (a) a.status = status; renderApprovals(); }
-
-function renderEmails() {
-  const labels = { lead: "Lead", cliente_ativo: "Cliente ativo", fornecedor: "Fornecedor", interno: "Interno", irrelevante: "Irrelevante" };
-  document.getElementById("emailList").innerHTML = emails.map(e => `
+function renderSent(){
+  document.getElementById("sentList").innerHTML=sent.map(s=>`
     <div class="item">
-      <div class="row1"><span class="pill ${e.classification}">${labels[e.classification]}</span><span class="who">${e.sender}</span><span class="when">${e.draft ? "✎ rascunho pronto" : ""}</span></div>
-      <div style="font-weight:600;font-size:14px;margin:2px 0 6px">${e.subject}</div>
-      <div class="summary">${e.summary}</div>
+      <div class="row1"><span class="pill ${s.status}">${s.status==="enviada"?"Enviada":"Em follow-up"}</span><span class="who">${s.titulo}</span><span class="when">${s.quando}</span></div>
+      <div class="summary">${s.cliente} · ${brl(s.valor)}</div>
+      <ul class="timeline">${s.hist.map(h=>`<li class="${h.s}">${h.t}</li>`).join("")}</ul>
     </div>`).join("");
 }
-
-function renderProposals() {
-  const st = { generated: ["create","Gerada"], draft: ["update","Rascunho"] };
-  document.getElementById("propList").innerHTML = proposals.map(p => {
-    const [cls, lbl] = st[p.status];
-    return `<div class="item">
-      <div class="row1"><span class="pill ${cls}">${lbl}</span><span class="who">${p.title}</span><span class="when">${p.created}</span></div>
-      <div class="summary">${p.cliente} · ${p.itens} ${p.itens === 1 ? "item" : "itens"} · ${p.valor ? brl(p.valor) : "sob consulta"}</div>
-      <div class="actions">${p.status === "generated" ? `<button class="btn-ghost">⬇ Baixar PPTX</button>${p.onedrive ? `<button class="btn-ghost">↗ Abrir no OneDrive</button>` : ""}` : `<button class="btn-ghost">Editar dados</button>`}</div>
-    </div>`;
-  }).join("");
+function renderApprovals(){
+  document.getElementById("apprList").innerHTML=approvals.map(a=>`
+    <div class="item"><div class="row1"><span class="pill ${a.tipo[0]}">${a.tipo[1]}</span><span class="who">${a.who}</span><span class="when">${a.when}</span></div>
+    <div class="preview">${a.preview}</div>
+    <div class="actions"><button class="act btn-ok">Aprovar</button><button class="act btn-no">Rejeitar</button></div></div>`).join("");
+}
+function renderAdvisor(){
+  document.getElementById("advContent").innerHTML=`
+    <div class="card"><h2>Resumo executivo</h2><p style="color:var(--muted);font-size:14px;line-height:1.65">${advisor.summary}</p>
+    <p style="color:var(--dim);font-size:12px;margin-top:12px">Gerado em ${advisor.created} · modelo de raciocínio pesado (Opus)</p></div>
+    <div class="card"><h2>Recomendações priorizadas</h2>${advisor.recs.map(r=>`<div class="rec ${r.p}">
+      <h3><span class="pill ${r.p}">${r.p}</span> ${r.t}</h3><p>${r.porque}</p><p class="step">→ ${r.passo}</p></div>`).join("")}</div>`;
 }
 
-function renderEngineering() {
-  document.getElementById("engContent").innerHTML = `
-    <div class="card"><h2>Lista de instrumentos — Área 300</h2>
-      <table class="inst"><thead><tr><th>TAG</th><th>Serviço</th><th>Interpretação ISA-5.1</th><th></th></tr></thead><tbody>
-      ${instruments.map(i => `<tr><td style="color:var(--cyan);font-weight:600">${i.tag}</td><td>${i.servico}</td><td>${i.interpretacao}</td><td class="${i.ok?'tag-ok':'tag-bad'}">${i.ok?'✓ válida':'✕'}</td></tr>`).join("")}
-      </tbody></table>
-    </div>
-    <div class="card"><h2>Fluxograma de processo (Mermaid)</h2><div class="mermaid-box">${flowchart}</div></div>`;
-}
-
-function renderAdvisor() {
-  document.getElementById("advContent").innerHTML = `
-    <div class="card"><h2>Resumo executivo</h2>
-      <p style="color:var(--muted);font-size:14px;line-height:1.65">${advisor.summary}</p>
-      <p style="color:var(--dim);font-size:12px;margin-top:12px">Gerado em ${advisor.created} · modelo de raciocínio pesado (Opus)</p>
-    </div>
-    <div class="card"><h2>Recomendações priorizadas</h2>
-      ${advisor.recomendacoes.map(r => `<div class="rec ${r.prioridade}">
-        <h3><span class="pill ${r.prioridade}">${r.prioridade}</span> ${r.titulo}</h3>
-        <p>${r.porque}</p>
-        <p class="step">→ ${r.proximo_passo}</p></div>`).join("")}
-    </div>`;
-}
-
-/* ====== nav ====== */
-document.querySelectorAll("#nav a").forEach(a => a.addEventListener("click", () => {
-  document.querySelectorAll("#nav a").forEach(x => x.classList.remove("active"));
-  a.classList.add("active");
-  const v = a.dataset.view;
-  document.querySelectorAll("section.view").forEach(s => s.classList.toggle("active", s.id === v));
+/* ---- nav + tabs ---- */
+document.querySelectorAll("#nav a").forEach(a=>a.addEventListener("click",()=>{
+  document.querySelectorAll("#nav a").forEach(x=>x.classList.remove("active")); a.classList.add("active");
+  document.querySelectorAll("section.view").forEach(s=>s.classList.toggle("active",s.id===a.dataset.view));
+}));
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active")); b.classList.add("active");
+  document.querySelectorAll(".subview").forEach(s=>s.classList.toggle("active",s.id===b.dataset.tab));
+}));
+document.querySelectorAll("#taskSeg button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("#taskSeg button").forEach(x=>x.classList.remove("active")); b.classList.add("active"); renderTasks(b.dataset.p);
 }));
 
-renderDashboard(); renderApprovals(); renderEmails(); renderProposals(); renderEngineering(); renderAdvisor();
+renderDashboard(); renderTasks("dia"); renderSent(); renderApprovals(); renderAdvisor(); genMail();
 </script>
 </body>
 </html>
